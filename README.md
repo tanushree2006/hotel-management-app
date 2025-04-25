@@ -20,11 +20,11 @@ src/ ├── Main.java ├── Employee.java ├── Traveler.java ├─�
 
 
 ## 🤝 Collaborators
-- Your Name (@your-github)
-- Teammate 1 (@teammate1)
-- Teammate 2 (@teammate2)
+- Tanushree Meshram (@tanushree2006)
+- Avaneesh Bodhe (@teammate1)
+- Samiksha Nimje (@teammate2)
 
 ## 🛠️ How to Run
 1. Clone the repo:
    ```bash
-   git clone https://github.com/YOUR_USERNAME/REPO_NAME.git
+   git clone https://github.com/tanushree2006/hotel-management-app.git
