@@ -3,10 +3,6 @@ import javax.swing.border.EmptyBorder;
 import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.net.URL;
-import javax.swing.table.TableCellRenderer;
-import javax.swing.table.DefaultTableCellRenderer;
-import java.util.ArrayList;
-import java.util.List;
 
 public class CustomerDashboard extends JFrame {
     private JTabbedPane tabbedPane;
@@ -95,7 +91,11 @@ public class CustomerDashboard extends JFrame {
         mainContent.add(Box.createVerticalStrut(15));
         mainContent.add(featuredPanel);
 
-        panel.add(mainContent, BorderLayout.CENTER);
+        JScrollPane scrollPane = new JScrollPane(mainContent);
+        scrollPane.setBorder(null);
+        scrollPane.getVerticalScrollBar().setUnitIncrement(16);
+
+        panel.add(scrollPane, BorderLayout.CENTER);
         return panel;
     }
 
@@ -194,7 +194,7 @@ public class CustomerDashboard extends JFrame {
         panel.setBorder(new EmptyBorder(10, 10, 10, 10));
 
         try {
-            URL imgUrl = getClass().getClassLoader().getResource(imagePath);
+            URL imgUrl = getClass().getResource("/" + imagePath);
             if (imgUrl != null) {
                 ImageIcon icon = new ImageIcon(imgUrl);
                 Image scaledImage = icon.getImage().getScaledInstance(250, 150, Image.SCALE_SMOOTH);
@@ -247,8 +247,8 @@ public class CustomerDashboard extends JFrame {
 
         JPanel fieldsPanel = new JPanel(new GridLayout(0, 2, 15, 15));
         fieldsPanel.setOpaque(false);
-        fieldsPanel.add(createInputField("Check-in Date", new JDateChooser()));
-        fieldsPanel.add(createInputField("Check-out Date", new JDateChooser()));
+        fieldsPanel.add(createInputField("Check-in Date", new JTextField()));
+        fieldsPanel.add(createInputField("Check-out Date", new JTextField()));
         fieldsPanel.add(createInputField("Adults", new JComboBox<>(new Integer[]{1, 2, 3, 4})));
         fieldsPanel.add(createInputField("Children", new JComboBox<>(new Integer[]{0, 1, 2, 3, 4})));
         fieldsPanel.add(createInputField("Room Type", new JComboBox<>(new String[]{
@@ -306,7 +306,6 @@ public class CustomerDashboard extends JFrame {
                 {"RES-002", "Executive Room", "2023-07-10", "2023-07-15", "Pending", "View"},
                 {"RES-003", "Family Suite", "2023-08-05", "2023-08-12", "Cancelled", "View"}
         };
-
         JTable table = new JTable(data, columns);
         table.setRowHeight(40);
         table.getTableHeader().setReorderingAllowed(false);
@@ -335,7 +334,11 @@ public class CustomerDashboard extends JFrame {
         servicesGrid.add(createServiceCard("Concierge", "Get local assistance", "images/Concierge.jpg"));
         servicesGrid.add(createServiceCard("Spa & Wellness", "Book spa treatments", "images/Spa.jpg"));
 
-        panel.add(servicesGrid, BorderLayout.CENTER);
+        JScrollPane scrollPane = new JScrollPane(servicesGrid);
+        scrollPane.setBorder(null);
+        scrollPane.getVerticalScrollBar().setUnitIncrement(16);
+
+        panel.add(scrollPane, BorderLayout.CENTER);
         return panel;
     }
 
@@ -345,53 +348,30 @@ public class CustomerDashboard extends JFrame {
         panel.setLayout(new BorderLayout(0, 10));
         panel.setBorder(new EmptyBorder(15, 15, 15, 15));
 
-        // Try to load image from resources
-        ImageIcon icon = null;
+        JLabel imageLabel = new JLabel("[Image]");
         try {
             URL imgUrl = getClass().getResource("/" + imagePath);
             if (imgUrl != null) {
-                icon = new ImageIcon(imgUrl);
-            } else {
-                System.err.println("Image not found: " + imagePath);
+                ImageIcon icon = new ImageIcon(imgUrl);
+                Image scaledImage = icon.getImage().getScaledInstance(250, 150, Image.SCALE_SMOOTH);
+                imageLabel.setIcon(new ImageIcon(scaledImage));
+                imageLabel.setText("");
             }
-        } catch (Exception e) {
-            System.err.println("Error loading image: " + e.getMessage());
-        }
+        } catch (Exception ignored) {}
 
-        JLabel imageLabel = new JLabel();
-        if (icon != null) {
-            Image scaledImage = icon.getImage().getScaledInstance(250, 150, Image.SCALE_SMOOTH);
-            imageLabel.setIcon(new ImageIcon(scaledImage));
-        } else {
-            // Create a placeholder if image fails to load
-            imageLabel.setText("[Image]");
-            imageLabel.setHorizontalAlignment(JLabel.CENTER);
-            imageLabel.setForeground(Color.GRAY);
-        }
-        imageLabel.setHorizontalAlignment(JLabel.CENTER);
         panel.add(imageLabel, BorderLayout.CENTER);
 
-        // Rest of the card content...
         JLabel titleLabel = new JLabel(title);
         titleLabel.setFont(HotelManagementSystem.SUBHEADING_FONT);
         titleLabel.setForeground(HotelManagementSystem.PRIMARY_COLOR);
         titleLabel.setHorizontalAlignment(JLabel.CENTER);
 
-        JLabel descLabel = new JLabel("<html><div style='width:200px;text-align:center'>" + desc + "</div></html>");
-        descLabel.setFont(HotelManagementSystem.NORMAL_FONT);
+        JLabel descLabel = new JLabel("<html><center>" + desc + "</center></html>");
+        descLabel.setFont(HotelManagementSystem.SMALL_FONT);
         descLabel.setHorizontalAlignment(JLabel.CENTER);
 
-        JButton orderButton = new StyledButton("Order Now");
-
-        JPanel contentPanel = new JPanel();
-        contentPanel.setLayout(new BoxLayout(contentPanel, BoxLayout.Y_AXIS));
-        contentPanel.setOpaque(false);
-        contentPanel.add(titleLabel);
-        contentPanel.add(Box.createVerticalStrut(5));
-        contentPanel.add(descLabel);
-
-        panel.add(contentPanel, BorderLayout.CENTER);
-        panel.add(orderButton, BorderLayout.SOUTH);
+        panel.add(titleLabel, BorderLayout.NORTH);
+        panel.add(descLabel, BorderLayout.SOUTH);
 
         return panel;
     }
@@ -401,168 +381,50 @@ public class CustomerDashboard extends JFrame {
         panel.setOpaque(false);
         panel.setBorder(new EmptyBorder(15, 15, 15, 15));
 
-        // Header panel
-        JPanel headerPanel = new JPanel(new BorderLayout());
+        JPanel headerPanel = new JPanel();
+        headerPanel.setLayout(new BoxLayout(headerPanel, BoxLayout.Y_AXIS));
         headerPanel.setOpaque(false);
 
         JLabel titleLabel = new JLabel("Lost and Found");
         titleLabel.setFont(HotelManagementSystem.HEADING_FONT);
         titleLabel.setForeground(HotelManagementSystem.PRIMARY_COLOR);
 
-        JButton reportButton = new StyledButton("Report Lost Item");
-        reportButton.addActionListener(e -> showReportLostItemDialog());
+        JLabel descLabel = new JLabel("Report lost items or inquire about found items.");
+        descLabel.setFont(HotelManagementSystem.NORMAL_FONT);
 
-        headerPanel.add(titleLabel, BorderLayout.WEST);
-        headerPanel.add(reportButton, BorderLayout.EAST);
+        headerPanel.add(titleLabel);
+        headerPanel.add(descLabel);
 
-        // Table data
-        String[] columns = {"Image", "Item ID", "Description", "Found Location", "Status", "Action"};
-        Object[][] data = {
-                {"images/wallet.jpg", "LF-001", "Black leather wallet", "Room 201", "Unclaimed", "Claim"},
-                {"images/watch.jpg", "LF-002", "Gold wrist watch", "Lobby", "Unclaimed", "Claim"},
-                {"images/charger.jpg", "LF-003", "Phone charger", "Restaurant", "Claimed", "View"}
-        };
-
-        // Create the table
-        JTable table = new JTable(data, columns) {
-            @Override
-            public Class<?> getColumnClass(int column) {
-                return column == 0 ? ImageIcon.class : Object.class;
-            }
-        };
-        table.setRowHeight(60);
-
-        // Set custom renderer for image column
-        table.getColumnModel().getColumn(0).setCellRenderer(new DefaultTableCellRenderer() {
-            @Override
-            public Component getTableCellRendererComponent(JTable table, Object value,
-                                                           boolean isSelected, boolean hasFocus, int row, int column) {
-                JLabel label = (JLabel) super.getTableCellRendererComponent(table, value,
-                        isSelected, hasFocus, row, column);
-                label.setHorizontalAlignment(JLabel.CENTER);
-
-                if (value instanceof String) {
-                    String imagePath = (String) value;
-                    try {
-                        URL imgUrl = getClass().getClassLoader().getResource(imagePath);
-                        if (imgUrl != null) {
-                            ImageIcon icon = new ImageIcon(imgUrl);
-                            Image scaledImage = icon.getImage().getScaledInstance(50, 50, Image.SCALE_SMOOTH);
-                            label.setIcon(new ImageIcon(scaledImage));
-                        } else {
-                            label.setIcon(null);
-                            label.setText("[Image]");
-                        }
-                    } catch (Exception e) {
-                        label.setIcon(null);
-                        label.setText("[Error]");
-                    }
-                }
-                return label;
-            }
-        });
-
-        JScrollPane scrollPane = new JScrollPane(table);
-        scrollPane.setBorder(BorderFactory.createEmptyBorder());
+        JPanel contentPanel = new JPanel();
+        contentPanel.setOpaque(false);
+        contentPanel.add(new JLabel("This section is under development."));
 
         panel.add(headerPanel, BorderLayout.NORTH);
-        panel.add(scrollPane, BorderLayout.CENTER);
+        panel.add(contentPanel, BorderLayout.CENTER);
 
         return panel;
     }
 
-    private void showReportLostItemDialog() {
-        JOptionPane.showMessageDialog(this,
-                "Report lost item functionality would be implemented here",
-                "Report Lost Item",
-                JOptionPane.INFORMATION_MESSAGE);
-    }
-
-    private JPanel createLostItemCard(LostItem item) {
-        RoundedPanel card = new RoundedPanel(15);
-        card.setBackground(Color.WHITE);
-        card.setLayout(new BorderLayout());
-        card.setBorder(new EmptyBorder(15, 15, 15, 15));
-
+    private ImageIcon createHotelIcon() {
         try {
-            URL imgUrl = getClass().getClassLoader().getResource(item.getImagePath());
-            if (imgUrl != null) {
-                ImageIcon icon = new ImageIcon(imgUrl);
-                Image scaledImage = icon.getImage().getScaledInstance(200, 150, Image.SCALE_SMOOTH);
-                card.add(new JLabel(new ImageIcon(scaledImage)) {{
-                    setHorizontalAlignment(JLabel.CENTER);
-                }}, BorderLayout.NORTH);
+            URL imageUrl = getClass().getResource("/images/HotelI.png");
+            if (imageUrl != null) {
+                BufferedImage image = javax.imageio.ImageIO.read(imageUrl);
+                Image scaledImage = image.getScaledInstance(50, 50, Image.SCALE_SMOOTH);
+                return new ImageIcon(scaledImage);
             }
-        } catch (Exception e) {
-            card.add(new JLabel("[Item image]"), BorderLayout.NORTH);
-        }
-
-        JPanel detailsPanel = new JPanel();
-        detailsPanel.setLayout(new BoxLayout(detailsPanel, BoxLayout.Y_AXIS));
-        detailsPanel.setOpaque(false);
-
-        detailsPanel.add(new JLabel("ID: " + item.getId()));
-        detailsPanel.add(Box.createVerticalStrut(5));
-        detailsPanel.add(new JLabel("Desc: " + item.getDescription()));
-        detailsPanel.add(Box.createVerticalStrut(5));
-        detailsPanel.add(new JLabel("Found: " + item.getRoomNumber()));
-        detailsPanel.add(Box.createVerticalStrut(5));
-        detailsPanel.add(new JLabel("Date: " + item.getFoundDate()));
-        detailsPanel.add(Box.createVerticalStrut(10));
-        detailsPanel.add(new StatusBadge(item.getStatus()));
-
-        card.add(detailsPanel, BorderLayout.CENTER);
-        card.add(new StyledButton("Claim Item"), BorderLayout.SOUTH);
-
-        return card;
+        } catch (Exception ignored) {}
+        return new ImageIcon();
     }
 
     private void logout() {
-        SwingUtilities.invokeLater(() -> {
-            LoginWindow loginWindow = new LoginWindow();
-            loginWindow.setVisible(true);
-            dispose();
-        });
-    }
-
-    private ImageIcon createHotelIcon() {
-        try {
-            URL imgUrl = getClass().getClassLoader().getResource("images/logo.png");
-            if (imgUrl != null) {
-                ImageIcon icon = new ImageIcon(imgUrl);
-                Image scaledImage = icon.getImage().getScaledInstance(40, 40, Image.SCALE_SMOOTH);
-                return new ImageIcon(scaledImage);
-            }
-        } catch (Exception e) {
-            System.err.println("Error loading logo: " + e.getMessage());
+        int choice = JOptionPane.showConfirmDialog(this,
+                "Are you sure you want to logout?",
+                "Logout Confirmation",
+                JOptionPane.YES_NO_OPTION);
+        if (choice == JOptionPane.YES_OPTION) {
+            this.dispose();
+            new LoginWindow().setVisible(true);  // <-- Replace with your Login JFrame
         }
-        return new ImageIcon(new BufferedImage(40, 40, BufferedImage.TYPE_INT_ARGB));
-    }
-
-    public static void main(String[] args) {
-        SwingUtilities.invokeLater(() -> {
-            CustomerDashboard dashboard = new CustomerDashboard("TestUser");
-            dashboard.setVisible(true);
-        });
-    }
-
-    class LostItem {
-        private String id, description, roomNumber, imagePath, foundDate, status;
-
-        public LostItem(String id, String desc, String room, String image) {
-            this.id = id;
-            this.description = desc;
-            this.roomNumber = room;
-            this.imagePath = image;
-            this.foundDate = "2023-11-15";
-            this.status = "Unclaimed";
-        }
-
-        public String getId() { return id; }
-        public String getDescription() { return description; }
-        public String getRoomNumber() { return roomNumber; }
-        public String getImagePath() { return imagePath; }
-        public String getFoundDate() { return foundDate; }
-        public String getStatus() { return status; }
     }
 }
