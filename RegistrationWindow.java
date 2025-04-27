@@ -31,7 +31,7 @@ public class RegistrationWindow extends JFrame {
         JLabel iconLabel = new JLabel(createHotelIcon());
         JLabel titleLabel = new JLabel("MiraVelle : Beauty in Every Stay");
         titleLabel.setFont(new Font("Arial", Font.BOLD, 24));
-        titleLabel.setForeground(HotelManagementSystem.PRIMARY_COLOR);
+        titleLabel.setForeground(HotelManagementSystem.LIGHT_COLOR);
 
         headerPanel.add(iconLabel);
         headerPanel.add(titleLabel);
@@ -191,6 +191,15 @@ public class RegistrationWindow extends JFrame {
             return;
         }
 
+        // 👉 Prevent hotel owners from registering
+        if (ownerRadio.isSelected()) {
+            JOptionPane.showMessageDialog(this,
+                    "Hotel Owner registration is not allowed. Please contact admin.",
+                    "Registration Restricted",
+                    JOptionPane.ERROR_MESSAGE);
+            return;
+        }
+
         // Check if username already exists
         UserManager userManager = UserManager.getInstance();
         if (userManager.userExists(username)) {
@@ -201,9 +210,8 @@ public class RegistrationWindow extends JFrame {
             return;
         }
 
-        // Create and register the new user
-        boolean isOwner = ownerRadio.isSelected();
-        User newUser = new User(username, password, fullName, email, phone, isOwner);
+        // Create and register the new customer user
+        User newUser = new User(username, password, fullName, email, phone, false); // isOwner = false
         userManager.addUser(newUser);
 
         JOptionPane.showMessageDialog(this,
@@ -216,6 +224,7 @@ public class RegistrationWindow extends JFrame {
         loginWindow.setVisible(true);
         dispose();
     }
+
 
     private ImageIcon createHotelIcon() {
         // Replace with your image path (make sure the image is placed in the correct directory)

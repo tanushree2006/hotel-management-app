@@ -37,8 +37,8 @@ public class LoginWindow extends JFrame {
 
         JLabel iconLabel = new JLabel(createHotelIcon());
         JLabel titleLabel = new JLabel("Miravelle : Beauty in Every Stay");
-        titleLabel.setFont(new Font("Arial", Font.BOLD, 24));
-        titleLabel.setForeground(HotelManagementSystem.PRIMARY_COLOR);
+        titleLabel.setFont(new Font("Georgia", Font.BOLD, 24));
+        titleLabel.setForeground(HotelManagementSystem.LIGHT_COLOR);
 
         headerPanel.add(iconLabel);
         headerPanel.add(titleLabel);
@@ -176,6 +176,21 @@ public class LoginWindow extends JFrame {
 
         try {
             UserManager userManager = UserManager.getInstance();
+
+            if (ownerRadio.isSelected()) {
+                // 👉 Hardcoded Owner Credentials
+                String ownerUsername = "admin";
+                String ownerPassword = "admin123"; // Change to whatever password you want
+
+                if (username.equals(ownerUsername) && password.equals(ownerPassword)) {
+                    openOwnerDashboard();
+                } else {
+                    showError("Invalid Hotel Owner credentials.");
+                }
+                return;
+            }
+
+            // Customer Login
             User user = userManager.authenticateUser(username, password);
 
             if (user == null) {
@@ -188,8 +203,8 @@ public class LoginWindow extends JFrame {
                 return;
             }
 
-            if (user.isOwner() != ownerRadio.isSelected()) {
-                showError("Invalid user type selected.");
+            if (user.isOwner()) {
+                showError("Invalid login method for owner.");
                 return;
             }
 
@@ -198,6 +213,15 @@ public class LoginWindow extends JFrame {
             showError("An error occurred during login: " + e.getMessage());
         }
     }
+
+    private void openOwnerDashboard() {
+        SwingUtilities.invokeLater(() -> {
+            OwnerDashboard ownerDashboard = new OwnerDashboard();
+            ownerDashboard.setVisible(true);
+            dispose();
+        });
+    }
+
 
     private void showError(String message) {
         JOptionPane.showMessageDialog(this, message, "Login Failed", JOptionPane.ERROR_MESSAGE);

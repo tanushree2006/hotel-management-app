@@ -35,8 +35,8 @@ public class User {
     public String getEmail() {
         return email;
     }
-    
-    public String getPhone() {
+
+    public String getPhoneNumber() {
         return phone;
     }
     
