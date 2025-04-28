@@ -4,11 +4,13 @@ import java.awt.*;
 import java.awt.event.*;
 import java.awt.image.BufferedImage;
 import java.net.URL;
+import owner.views.OwnerDashboard;
+
 
 public class LoginWindow extends JFrame {
     private JTextField usernameField;
     private JPasswordField passwordField;
-    private JRadioButton customerRadio, ownerRadio;
+    private JRadioButton customerRadio, ownerRadio, staffRadio;
     private StyledButton loginButton, registerButton;
 
     public LoginWindow() {
@@ -120,6 +122,7 @@ public class LoginWindow extends JFrame {
         panel.setOpaque(false);
         panel.setBorder(new EmptyBorder(0, 0, 15, 0));
 
+
         JLabel label = new JLabel("Login As");
         label.setFont(HotelManagementSystem.NORMAL_FONT);
 
@@ -130,12 +133,15 @@ public class LoginWindow extends JFrame {
         customerRadio = new StyledRadioButton("Customer");
         customerRadio.setSelected(true);
         ownerRadio = new StyledRadioButton("Hotel Owner");
+        staffRadio = new StyledRadioButton("Staff");
 
         group.add(customerRadio);
         group.add(ownerRadio);
+        group.add(staffRadio);
 
         radioPanel.add(customerRadio);
         radioPanel.add(ownerRadio);
+        radioPanel.add(staffRadio);
 
         panel.add(label, BorderLayout.NORTH);
         panel.add(radioPanel, BorderLayout.CENTER);
@@ -188,6 +194,17 @@ public class LoginWindow extends JFrame {
                     showError("Invalid Hotel Owner credentials.");
                 }
                 return;
+            } else if (staffRadio.isSelected()) {
+                // 👉 Hardcoded Staff Credentials
+                String staffUsername = "staff";
+                String staffPassword = "staff123";
+
+                if (username.equals(staffUsername) && password.equals(staffPassword)) {
+                    openStaffDashboard();
+                } else {
+                    showError("Invalid Staff credentials.");
+                }
+                return;
             }
 
             // Customer Login
@@ -216,12 +233,36 @@ public class LoginWindow extends JFrame {
 
     private void openOwnerDashboard() {
         SwingUtilities.invokeLater(() -> {
-            OwnerDashboard ownerDashboard = new OwnerDashboard();
-            ownerDashboard.setVisible(true);
-            dispose();
+            try {
+                // Use reflection to load our class from the package
+                Class<?> ownerDashboardClass = Class.forName("owner.views.OwnerDashboard");
+                Object ownerDashboard = ownerDashboardClass.getDeclaredConstructor().newInstance();
+                java.lang.reflect.Method setVisibleMethod = ownerDashboardClass.getMethod("setVisible", boolean.class);
+                setVisibleMethod.invoke(ownerDashboard, true);
+                dispose();
+            } catch (Exception ex) {
+                ex.printStackTrace();
+                showError("Error loading Owner Dashboard. Please check if the hotel management system is properly installed.");
+            }
         });
     }
 
+    private void openStaffDashboard() {
+        SwingUtilities.invokeLater(() -> {
+            try {
+                // Use reflection to load our class from the package
+                Class<?> staffDashboardClass = Class.forName("owner.views.StaffDashboard");
+                Object staffDashboard = staffDashboardClass.getDeclaredConstructor(String.class, String.class)
+                        .newInstance("Staff User", "Housekeeping");
+                java.lang.reflect.Method setVisibleMethod = staffDashboardClass.getMethod("setVisible", boolean.class);
+                setVisibleMethod.invoke(staffDashboard, true);
+                dispose();
+            } catch (Exception ex) {
+                ex.printStackTrace();
+                showError("Error loading Staff Dashboard. Please check if the hotel management system is properly installed.");
+            }
+        });
+    }
 
     private void showError(String message) {
         JOptionPane.showMessageDialog(this, message, "Login Failed", JOptionPane.ERROR_MESSAGE);

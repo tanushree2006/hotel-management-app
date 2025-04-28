@@ -98,14 +98,11 @@ public class RegistrationWindow extends JFrame {
 
         ButtonGroup group = new ButtonGroup();
         customerRadio = new StyledRadioButton("Customer");
-        customerRadio.setSelected(true);
-        ownerRadio = new StyledRadioButton("Hotel Owner");
+
 
         group.add(customerRadio);
-        group.add(ownerRadio);
 
         radioPanel.add(customerRadio);
-        radioPanel.add(ownerRadio);
 
         userTypePanel.add(userTypeLabel, BorderLayout.NORTH);
         userTypePanel.add(radioPanel, BorderLayout.CENTER);
@@ -192,13 +189,7 @@ public class RegistrationWindow extends JFrame {
         }
 
         // 👉 Prevent hotel owners from registering
-        if (ownerRadio.isSelected()) {
-            JOptionPane.showMessageDialog(this,
-                    "Hotel Owner registration is not allowed. Please contact admin.",
-                    "Registration Restricted",
-                    JOptionPane.ERROR_MESSAGE);
-            return;
-        }
+
 
         // Check if username already exists
         UserManager userManager = UserManager.getInstance();

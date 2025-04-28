@@ -220,9 +220,9 @@ public class CustomerDashboard extends JFrame {
 
         JPanel roomsPanel = new JPanel(new GridLayout(1, 3, 15, 0));
         roomsPanel.setOpaque(false);
-        roomsPanel.add(createRoomCard("Deluxe Suite", "$299/night", "Spacious suite with ocean view", "images/Deluxe.jpg"));
-        roomsPanel.add(createRoomCard("Executive Room", "$199/night", "Perfect for business travelers", "images/Executive.jpg"));
-        roomsPanel.add(createRoomCard("Family Suite", "$349/night", "Ideal for families with children", "images/FamilyS.jpg"));
+        roomsPanel.add(createRoomCard("Deluxe Suite", "₹20,000/night", "Spacious suite with ocean view", "images/Deluxe.jpg"));
+        roomsPanel.add(createRoomCard("Executive Room", "₹15,000/night", "Perfect for business travelers", "images/Executive.jpg"));
+        roomsPanel.add(createRoomCard("Family Suite", "₹25,000/night", "Ideal for families with children", "images/FamilyS.jpg"));
 
         panel.add(titleLabel, BorderLayout.NORTH);
         panel.add(roomsPanel, BorderLayout.CENTER);
@@ -1127,6 +1127,9 @@ public class CustomerDashboard extends JFrame {
     private void logout() {
         // Implement logout functionality here
         JOptionPane.showMessageDialog(this, "Logout successful!");
+        this.dispose();
+        LoginWindow loginWindow = new LoginWindow();
+        loginWindow.setVisible(true);
     }
 
 
