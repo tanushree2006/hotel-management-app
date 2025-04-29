@@ -4,11 +4,12 @@ import owner.models.LostItem;
 import owner.models.Claim;
 
 import javax.swing.*;
+import javax.swing.border.LineBorder;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableCellRenderer;
+import javax.swing.table.TableColumnModel;
 import java.awt.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
+import java.awt.event.*;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -20,16 +21,15 @@ public class LostFoundView extends JPanel {
     private List<LostItem> lostItems;
 
     public LostFoundView() {
-        setLayout(new BorderLayout());
+        setLayout(new BorderLayout(20, 20));
         setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));
-        setBackground(Color.WHITE);
+        setBackground(new Color(245, 247, 250)); // Light background for modern look
 
         initializeData();
         initComponents();
     }
 
     private void initializeData() {
-        // Sample data
         lostItems = new ArrayList<>();
 
         LostItem item1 = new LostItem("L001", "Black leather wallet with initials JD", "102", "wallet.jpg", "2023-04-15", "Claimed (Pending)");
@@ -52,131 +52,151 @@ public class LostFoundView extends JPanel {
     }
 
     private void initComponents() {
-        // Title panel
-        JPanel titlePanel = new JPanel(new BorderLayout());
-        titlePanel.setOpaque(false);
+        // --- Title Panel ---
+        JPanel titlePanel = new JPanel(new BorderLayout(10, 10));
+        titlePanel.setOpaque(true);
+        titlePanel.setBackground(new Color(16, 46, 106));
+        titlePanel.setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));
 
         JLabel titleLabel = new JLabel("Lost & Found Management");
-        titleLabel.setFont(new Font("Arial", Font.BOLD, 24));
+        titleLabel.setFont(new Font("Segoe UI", Font.BOLD, 28));
+        titleLabel.setForeground(Color.WHITE);
 
         JLabel subtitleLabel = new JLabel("Manage lost items found in the hotel and their claims.");
-        subtitleLabel.setFont(new Font("Arial", Font.PLAIN, 14));
-        subtitleLabel.setForeground(new Color(107, 114, 128));
+        subtitleLabel.setFont(new Font("Segoe UI", Font.PLAIN, 16));
+        subtitleLabel.setForeground(new Color(200, 210, 255));
+
+        JPanel titleTextPanel = new JPanel(new GridLayout(2, 1));
+        titleTextPanel.setOpaque(false);
+        titleTextPanel.add(titleLabel);
+        titleTextPanel.add(subtitleLabel);
 
         JButton addButton = new JButton("Add New Item");
-        addButton.setBackground(new Color(59, 130, 246));
+        addButton.setBackground(new Color(16, 46, 106));
         addButton.setForeground(Color.WHITE);
         addButton.setFocusPainted(false);
-        addButton.addActionListener(new ActionListener() {
+        addButton.setFont(new Font("Segoe UI", Font.BOLD, 14));
+        addButton.setBorder(BorderFactory.createEmptyBorder(8, 16, 8, 16));
+        addButton.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+        addButton.addActionListener(e -> showAddItemDialog());
+
+        // Rounded corners for button
+        addButton.setUI(new javax.swing.plaf.basic.BasicButtonUI() {
             @Override
-            public void actionPerformed(ActionEvent e) {
-                showAddItemDialog();
+            public void paint(Graphics g, JComponent c) {
+                Graphics2D g2 = (Graphics2D) g.create();
+                g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+                g2.setColor(addButton.getBackground());
+                g2.fillRoundRect(0, 0, c.getWidth(), c.getHeight(), 20, 20);
+                super.paint(g, c);
+                g2.dispose();
             }
         });
 
-        titlePanel.add(titleLabel, BorderLayout.NORTH);
-        titlePanel.add(subtitleLabel, BorderLayout.CENTER);
+        titlePanel.add(titleTextPanel, BorderLayout.CENTER);
         titlePanel.add(addButton, BorderLayout.EAST);
 
-        // Filter panel
-        JPanel filterPanel = new JPanel(new GridLayout(1, 2, 10, 0));
-        filterPanel.setOpaque(false);
-        filterPanel.setBorder(BorderFactory.createCompoundBorder(
-                BorderFactory.createLineBorder(new Color(229, 231, 235)),
-                BorderFactory.createEmptyBorder(15, 15, 15, 15)
-        ));
-
-        // Status filter
-        JPanel statusPanel = new JPanel(new BorderLayout(0, 5));
-        statusPanel.setOpaque(false);
-
-        JLabel statusLabel = new JLabel("Filter by Status");
-        statusLabel.setFont(new Font("Arial", Font.PLAIN, 12));
+        // --- Filters Panel ---
+        JPanel filterContainer = new JPanel(new FlowLayout(FlowLayout.LEFT, 20, 10));
+        filterContainer.setOpaque(false);
 
         statusFilter = new JComboBox<>(new String[]{"All Statuses", "Unclaimed", "Claimed (Pending)", "Claimed"});
-        statusFilter.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                filterItems();
-            }
-        });
+        statusFilter.setFont(new Font("Segoe UI", Font.PLAIN, 14));
+        statusFilter.addActionListener(e -> filterItems());
 
-        statusPanel.add(statusLabel, BorderLayout.NORTH);
-        statusPanel.add(statusFilter, BorderLayout.CENTER);
+        searchField = new JTextField(15);
+        searchField.setFont(new Font("Segoe UI", Font.PLAIN, 14));
+        searchField.addActionListener(e -> filterItems());
 
-        // Search panel
-        JPanel searchPanel = new JPanel(new BorderLayout(0, 5));
-        searchPanel.setOpaque(false);
+        JPanel statusCard = createCardPanel("Filter by Status", statusFilter);
+        JPanel searchCard = createCardPanel("Search", searchField);
 
-        JLabel searchLabel = new JLabel("Search");
-        searchLabel.setFont(new Font("Arial", Font.PLAIN, 12));
+        filterContainer.add(statusCard);
+        filterContainer.add(searchCard);
 
-        searchField = new JTextField();
-        searchField.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                filterItems();
-            }
-        });
-
-        searchPanel.add(searchLabel, BorderLayout.NORTH);
-        searchPanel.add(searchField, BorderLayout.CENTER);
-
-        filterPanel.add(statusPanel);
-        filterPanel.add(searchPanel);
-
-        // Table panel
+        // --- Table Panel ---
         JPanel tablePanel = new JPanel(new BorderLayout());
         tablePanel.setOpaque(false);
         tablePanel.setBorder(BorderFactory.createCompoundBorder(
-                BorderFactory.createLineBorder(new Color(229, 231, 235)),
-                BorderFactory.createEmptyBorder(0, 0, 0, 0)
+                BorderFactory.createLineBorder(new Color(220, 220, 220)),
+                BorderFactory.createEmptyBorder(10, 10, 10, 10)
         ));
 
-        // Create table model
         tableModel = new DefaultTableModel(
                 new Object[]{"ID", "Description", "Room", "Found Date", "Status", "Claims", "Actions"}, 0
         ) {
             @Override
             public boolean isCellEditable(int row, int column) {
-                return column == 6; // Only actions column is editable
+                return column == 6;
+            }
+
+            @Override
+            public Class<?> getColumnClass(int column) {
+                return column == 6 ? Object.class : String.class;
             }
         };
 
-        // Create table
-        lostItemsTable = new JTable(tableModel);
-        lostItemsTable.setRowHeight(40);
+        lostItemsTable = new JTable(tableModel) {
+            @Override
+            public Component prepareRenderer(TableCellRenderer renderer, int row, int column) {
+                Component c = super.prepareRenderer(renderer, row, column);
+                if (!isRowSelected(row)) {
+                    c.setBackground(row % 2 == 0 ? new Color(245, 247, 250) : Color.WHITE);
+                } else {
+                    c.setBackground(new Color(184, 207, 229));
+                }
+                return c;
+            }
+        };
+
+        lostItemsTable.setRowHeight(45);
         lostItemsTable.getTableHeader().setReorderingAllowed(false);
-        lostItemsTable.getTableHeader().setFont(new Font("Arial", Font.BOLD, 12));
-        lostItemsTable.getTableHeader().setBackground(new Color(243, 244, 246));
-        lostItemsTable.getTableHeader().setBorder(BorderFactory.createMatteBorder(0, 0, 1, 0, new Color(229, 231, 235)));
+        lostItemsTable.getTableHeader().setFont(new Font("Segoe UI", Font.BOLD, 14));
+        lostItemsTable.getTableHeader().setBackground(new Color(16, 46, 106));
+        lostItemsTable.getTableHeader().setForeground(Color.WHITE);
+        lostItemsTable.getTableHeader().setBorder(BorderFactory.createMatteBorder(0, 0, 2, 0, new Color(10, 55, 128)));
 
-        // Set column widths
-        lostItemsTable.getColumnModel().getColumn(0).setPreferredWidth(60);
-        lostItemsTable.getColumnModel().getColumn(1).setPreferredWidth(200);
-        lostItemsTable.getColumnModel().getColumn(2).setPreferredWidth(60);
-        lostItemsTable.getColumnModel().getColumn(3).setPreferredWidth(100);
-        lostItemsTable.getColumnModel().getColumn(4).setPreferredWidth(120);
-        lostItemsTable.getColumnModel().getColumn(5).setPreferredWidth(60);
-        lostItemsTable.getColumnModel().getColumn(6).setPreferredWidth(100);
+        TableColumnModel columnModel = lostItemsTable.getColumnModel();
+        columnModel.getColumn(0).setPreferredWidth(60);
+        columnModel.getColumn(1).setPreferredWidth(200);
+        columnModel.getColumn(2).setPreferredWidth(60);
+        columnModel.getColumn(3).setPreferredWidth(100);
+        columnModel.getColumn(4).setPreferredWidth(120);
+        columnModel.getColumn(5).setPreferredWidth(60);
+        columnModel.getColumn(6).setPreferredWidth(150);
 
-        // Add action buttons to the table
         lostItemsTable.getColumnModel().getColumn(6).setCellRenderer(new ButtonRenderer());
-        lostItemsTable.getColumnModel().getColumn(6).setCellEditor(new ButtonEditor(new JCheckBox()));
+        lostItemsTable.getColumnModel().getColumn(6).setCellEditor(new ButtonEditor());
 
-        // Add table to scroll pane
         JScrollPane scrollPane = new JScrollPane(lostItemsTable);
         scrollPane.setBorder(BorderFactory.createEmptyBorder());
 
         tablePanel.add(scrollPane, BorderLayout.CENTER);
 
-        // Populate table
         populateTable();
 
-        // Add components to main panel
+        // --- Add to main panel ---
         add(titlePanel, BorderLayout.NORTH);
-        add(filterPanel, BorderLayout.CENTER);
+        add(filterContainer, BorderLayout.CENTER);
         add(tablePanel, BorderLayout.SOUTH);
+    }
+
+    private JPanel createCardPanel(String labelText, JComponent inputComponent) {
+        JPanel card = new JPanel(new BorderLayout(0, 5));
+        card.setBorder(BorderFactory.createCompoundBorder(
+                new LineBorder(new Color(220, 220, 220), 1, true),
+                BorderFactory.createEmptyBorder(10, 15, 10, 15)
+        ));
+        card.setBackground(Color.WHITE);
+        card.setPreferredSize(new Dimension(250, 70));
+
+        JLabel label = new JLabel(labelText);
+        label.setFont(new Font("Segoe UI", Font.PLAIN, 13));
+
+        card.add(label, BorderLayout.NORTH);
+        card.add(inputComponent, BorderLayout.CENTER);
+
+        return card;
     }
 
     private void populateTable() {
@@ -197,7 +217,7 @@ public class LostFoundView extends JPanel {
 
     private void filterItems() {
         String searchText = searchField.getText().toLowerCase();
-        String statusText = statusFilter.getSelectedItem().toString();
+        String statusText = (String) statusFilter.getSelectedItem();
 
         tableModel.setRowCount(0);
 
@@ -262,39 +282,31 @@ public class LostFoundView extends JPanel {
         formPanel.add(statusCombo);
 
         JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
-
         JButton cancelButton = new JButton("Cancel");
-        cancelButton.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                dialog.dispose();
-            }
-        });
+        cancelButton.addActionListener(e -> dialog.dispose());
 
         JButton addButton = new JButton("Add Item");
-        addButton.setBackground(new Color(59, 130, 246));
+        addButton.setBackground(new Color(10, 55, 128));
         addButton.setForeground(Color.WHITE);
-        addButton.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                String description = descriptionField.getText();
-                String room = roomField.getText();
-                String image = imageField.getText();
-                String date = dateField.getText();
-                String status = (String) statusCombo.getSelectedItem();
+        addButton.setFocusPainted(false);
+        addButton.addActionListener(e -> {
+            String description = descriptionField.getText().trim();
+            String room = roomField.getText().trim();
+            String image = imageField.getText().trim();
+            String date = dateField.getText().trim();
+            String status = (String) statusCombo.getSelectedItem();
 
-                if (description.isEmpty() || room.isEmpty()) {
-                    JOptionPane.showMessageDialog(dialog, "Please fill in all required fields", "Error", JOptionPane.ERROR_MESSAGE);
-                    return;
-                }
-
-                String id = "L" + String.format("%03d", lostItems.size() + 1);
-                LostItem newItem = new LostItem(id, description, room, image.isEmpty() ? "no_image.jpg" : image, date, status);
-                lostItems.add(newItem);
-
-                populateTable();
-                dialog.dispose();
+            if (description.isEmpty() || room.isEmpty()) {
+                JOptionPane.showMessageDialog(dialog, "Please fill in all required fields", "Error", JOptionPane.ERROR_MESSAGE);
+                return;
             }
+
+            String id = "L" + String.format("%03d", lostItems.size() + 1);
+            LostItem newItem = new LostItem(id, description, room, image.isEmpty() ? "no_image.jpg" : image, date, status);
+            lostItems.add(newItem);
+
+            populateTable();
+            dialog.dispose();
         });
 
         buttonPanel.add(cancelButton);
@@ -306,381 +318,165 @@ public class LostFoundView extends JPanel {
         dialog.setVisible(true);
     }
 
-    // Custom button renderer for the actions column
+    // --- Button Renderer ---
     private class ButtonRenderer extends JPanel implements TableCellRenderer {
-        private JButton viewButton;
-        private JButton claimButton;
-        private JButton deleteButton;
+        private final JButton viewButton;
+        private final JButton claimButton;
+        private final JButton deleteButton;
 
         public ButtonRenderer() {
-            setLayout(new FlowLayout(FlowLayout.CENTER, 2, 0));
+            setLayout(new BoxLayout(this, BoxLayout.X_AXIS));
             setOpaque(true);
+            setBorder(BorderFactory.createEmptyBorder(0, 5, 0, 5));
 
-            viewButton = new JButton("View");
-            viewButton.setPreferredSize(new Dimension(50, 25));
-            viewButton.setFocusPainted(false);
-
-            claimButton = new JButton("Claim");
-            claimButton.setPreferredSize(new Dimension(50, 25));
-            claimButton.setFocusPainted(false);
-
-            deleteButton = new JButton("Del");
-            deleteButton.setPreferredSize(new Dimension(50, 25));
-            deleteButton.setFocusPainted(false);
+            viewButton = createButton("View", new Color(59, 130, 246));
+            claimButton = createButton("Claim", new Color(16, 185, 129));
+            deleteButton = createButton("Del", new Color(239, 68, 68));
 
             add(viewButton);
+            add(Box.createRigidArea(new Dimension(5, 0)));
             add(claimButton);
+            add(Box.createRigidArea(new Dimension(5, 0)));
             add(deleteButton);
         }
 
+        private JButton createButton(String text, Color bgColor) {
+            JButton btn = new JButton(text);
+            btn.setPreferredSize(new Dimension(70, 28));
+            btn.setMaximumSize(new Dimension(70, 28));
+            btn.setFocusPainted(false);
+            btn.setFont(new Font("Segoe UI", Font.PLAIN, 12));
+            btn.setBackground(bgColor);
+            btn.setForeground(Color.BLACK);
+            btn.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+            return btn;
+        }
+
         @Override
-        public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus, int row, int column) {
+        public Component getTableCellRendererComponent(JTable table, Object value,
+                                                       boolean isSelected, boolean hasFocus, int row, int column) {
             if (isSelected) {
                 setBackground(table.getSelectionBackground());
             } else {
-                setBackground(table.getBackground());
+                setBackground(row % 2 == 0 ? new Color(245, 247, 250) : Color.WHITE);
             }
-
             return this;
         }
     }
 
-    // Custom button editor for the actions column
+    // --- Button Editor ---
     private class ButtonEditor extends DefaultCellEditor {
-        private JPanel panel;
-        private JButton viewButton;
-        private JButton claimButton;
-        private JButton deleteButton;
-        private String action = "";
+        private final JPanel panel;
+        private final JButton viewButton;
+        private final JButton claimButton;
+        private final JButton deleteButton;
         private int currentRow;
+        private String action = "";
 
-        public ButtonEditor(JCheckBox checkBox) {
-            super(checkBox);
+        public ButtonEditor() {
+            super(new JCheckBox());
+            setClickCountToStart(1);
 
-            panel = new JPanel(new FlowLayout(FlowLayout.CENTER, 2, 0));
+            panel = new JPanel();
+            panel.setLayout(new BoxLayout(panel, BoxLayout.X_AXIS));
+            panel.setBorder(BorderFactory.createEmptyBorder(0, 5, 0, 5));
 
-            viewButton = new JButton("View");
-            viewButton.setPreferredSize(new Dimension(50, 25));
-            viewButton.setFocusPainted(false);
-            viewButton.addActionListener(new ActionListener() {
-                @Override
-                public void actionPerformed(ActionEvent e) {
-                    action = "View";
-                    fireEditingStopped();
-                }
+            viewButton = createButton("View", new Color(59, 130, 246));
+            claimButton = createButton("Claim", new Color(16, 185, 129));
+            deleteButton = createButton("Del", new Color(239, 68, 68));
+
+            viewButton.addActionListener(e -> {
+                fireEditingStopped();
+                viewAction(currentRow);
             });
 
-            claimButton = new JButton("Claim");
-            claimButton.setPreferredSize(new Dimension(50, 25));
-            claimButton.setFocusPainted(false);
-            claimButton.addActionListener(new ActionListener() {
-                @Override
-                public void actionPerformed(ActionEvent e) {
-                    action = "Claim";
-                    fireEditingStopped();
-                }
+            claimButton.addActionListener(e -> {
+                fireEditingStopped();
+                claimAction(currentRow);
             });
 
-            deleteButton = new JButton("Del");
-            deleteButton.setPreferredSize(new Dimension(50, 25));
-            deleteButton.setFocusPainted(false);
-            deleteButton.addActionListener(new ActionListener() {
-                @Override
-                public void actionPerformed(ActionEvent e) {
-                    action = "Delete";
-                    fireEditingStopped();
-                }
+            deleteButton.addActionListener(e -> {
+                fireEditingStopped();
+                deleteAction(currentRow);
             });
 
             panel.add(viewButton);
+            panel.add(Box.createRigidArea(new Dimension(5, 0)));
             panel.add(claimButton);
+            panel.add(Box.createRigidArea(new Dimension(5, 0)));
             panel.add(deleteButton);
         }
 
+        private JButton createButton(String text, Color bgColor) {
+            JButton btn = new JButton(text);
+            btn.setPreferredSize(new Dimension(70, 28));
+            btn.setFocusPainted(false);
+            btn.setFont(new Font("Segoe UI", Font.PLAIN, 12));
+            btn.setBackground(bgColor);
+            btn.setForeground(Color.WHITE);
+            btn.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+            return btn;
+        }
+
         @Override
-        public Component getTableCellEditorComponent(JTable table, Object value, boolean isSelected, int row, int column) {
+        public Component getTableCellEditorComponent(JTable table, Object value,
+                                                     boolean isSelected, int row, int column) {
             currentRow = row;
-            panel.setBackground(table.getSelectionBackground());
+            panel.setBackground(isSelected ? table.getSelectionBackground() :
+                    (row % 2 == 0 ? new Color(245, 247, 250) : Color.WHITE));
             return panel;
         }
 
         @Override
         public Object getCellEditorValue() {
-            if (action.equals("View")) {
-                showViewItemDialog(lostItems.get(currentRow));
-            } else if (action.equals("Claim")) {
-                showAddClaimDialog(lostItems.get(currentRow));
-            } else if (action.equals("Delete")) {
-                showDeleteItemDialog(lostItems.get(currentRow));
-            }
-
-            action = "";
-            return action;
+            return "Actions";
         }
     }
 
-    private void showViewItemDialog(LostItem item) {
-        JDialog dialog = new JDialog((Frame) SwingUtilities.getWindowAncestor(this), "Lost Item Details", true);
-        dialog.setSize(500, 400);
-        dialog.setLocationRelativeTo(this);
-        dialog.setLayout(new BorderLayout());
-
-        JPanel contentPanel = new JPanel(new BorderLayout());
-        contentPanel.setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));
-
-        // Item details panel
-        JPanel detailsPanel = new JPanel();
-        detailsPanel.setLayout(new BoxLayout(detailsPanel, BoxLayout.Y_AXIS));
-        detailsPanel.setOpaque(false);
-
-        JLabel idLabel = new JLabel("Item ID: " + item.getId());
-        idLabel.setFont(new Font("Arial", Font.BOLD, 14));
-        idLabel.setAlignmentX(Component.LEFT_ALIGNMENT);
-
-        JLabel descriptionLabel = new JLabel("Description: " + item.getDescription());
-        descriptionLabel.setFont(new Font("Arial", Font.PLAIN, 12));
-        descriptionLabel.setAlignmentX(Component.LEFT_ALIGNMENT);
-
-        JLabel roomLabel = new JLabel("Found in Room: " + item.getRoomNumber());
-        roomLabel.setFont(new Font("Arial", Font.PLAIN, 12));
-        roomLabel.setAlignmentX(Component.LEFT_ALIGNMENT);
-
-        JLabel dateLabel = new JLabel("Found Date: " + item.getFoundDate());
-        dateLabel.setFont(new Font("Arial", Font.PLAIN, 12));
-        dateLabel.setAlignmentX(Component.LEFT_ALIGNMENT);
-
-        JLabel statusLabel = new JLabel("Status: " + item.getStatus());
-        statusLabel.setFont(new Font("Arial", Font.PLAIN, 12));
-        statusLabel.setAlignmentX(Component.LEFT_ALIGNMENT);
-
-        JLabel imageLabel = new JLabel("Image: " + item.getImageFileName());
-        imageLabel.setFont(new Font("Arial", Font.PLAIN, 12));
-        imageLabel.setAlignmentX(Component.LEFT_ALIGNMENT);
-
-        detailsPanel.add(idLabel);
-        detailsPanel.add(Box.createRigidArea(new Dimension(0, 10)));
-        detailsPanel.add(descriptionLabel);
-        detailsPanel.add(Box.createRigidArea(new Dimension(0, 5)));
-        detailsPanel.add(roomLabel);
-        detailsPanel.add(Box.createRigidArea(new Dimension(0, 5)));
-        detailsPanel.add(dateLabel);
-        detailsPanel.add(Box.createRigidArea(new Dimension(0, 5)));
-        detailsPanel.add(statusLabel);
-        detailsPanel.add(Box.createRigidArea(new Dimension(0, 5)));
-        detailsPanel.add(imageLabel);
-        detailsPanel.add(Box.createRigidArea(new Dimension(0, 20)));
-
-        // Claims panel
-        JPanel claimsPanel = new JPanel(new BorderLayout());
-        claimsPanel.setOpaque(false);
-
-        JLabel claimsLabel = new JLabel("Claims (" + item.getClaims().size() + ")");
-        claimsLabel.setFont(new Font("Arial", Font.BOLD, 14));
-
-        JPanel claimsListPanel = new JPanel();
-        claimsListPanel.setLayout(new BoxLayout(claimsListPanel, BoxLayout.Y_AXIS));
-        claimsListPanel.setOpaque(false);
-
+    // --- Action Methods ---
+    private void viewAction(int row) {
+        LostItem item = lostItems.get(row);
+        StringBuilder claimsInfo = new StringBuilder();
         if (item.getClaims().isEmpty()) {
-            JLabel noClaimsLabel = new JLabel("No claims have been made for this item.");
-            noClaimsLabel.setFont(new Font("Arial", Font.ITALIC, 12));
-            noClaimsLabel.setAlignmentX(Component.LEFT_ALIGNMENT);
-            claimsListPanel.add(noClaimsLabel);
+            claimsInfo.append("No claims yet.");
         } else {
             for (Claim claim : item.getClaims()) {
-                JPanel claimPanel = new JPanel(new BorderLayout());
-                claimPanel.setBorder(BorderFactory.createCompoundBorder(
-                        BorderFactory.createMatteBorder(0, 0, 1, 0, new Color(229, 231, 235)),
-                        BorderFactory.createEmptyBorder(10, 0, 10, 0)
-                ));
-                claimPanel.setOpaque(false);
-
-                JPanel claimInfoPanel = new JPanel();
-                claimInfoPanel.setLayout(new BoxLayout(claimInfoPanel, BoxLayout.Y_AXIS));
-                claimInfoPanel.setOpaque(false);
-
-                JLabel claimNameLabel = new JLabel("Traveler: " + claim.getTravelerName());
-                claimNameLabel.setFont(new Font("Arial", Font.BOLD, 12));
-                claimNameLabel.setAlignmentX(Component.LEFT_ALIGNMENT);
-
-                JLabel claimDateLabel = new JLabel("Claim Date: " + claim.getClaimDate());
-                claimDateLabel.setFont(new Font("Arial", Font.PLAIN, 11));
-                claimDateLabel.setAlignmentX(Component.LEFT_ALIGNMENT);
-
-                JLabel claimDescLabel = new JLabel("Description: " + claim.getTravelerDescription());
-                claimDescLabel.setFont(new Font("Arial", Font.PLAIN, 11));
-                claimDescLabel.setAlignmentX(Component.LEFT_ALIGNMENT);
-
-                claimInfoPanel.add(claimNameLabel);
-                claimInfoPanel.add(claimDateLabel);
-                claimInfoPanel.add(claimDescLabel);
-
-                JLabel claimStatusLabel = new JLabel(claim.getStatus());
-                claimStatusLabel.setFont(new Font("Arial", Font.PLAIN, 11));
-
-                if (claim.getStatus().equals("Pending")) {
-                    claimStatusLabel.setForeground(new Color(234, 179, 8));
-                    claimStatusLabel.setBorder(BorderFactory.createCompoundBorder(
-                            BorderFactory.createLineBorder(new Color(234, 179, 8)),
-                            BorderFactory.createEmptyBorder(2, 5, 2, 5)
-                    ));
-                } else if (claim.getStatus().equals("Approved")) {
-                    claimStatusLabel.setForeground(new Color(34, 197, 94));
-                    claimStatusLabel.setBorder(BorderFactory.createCompoundBorder(
-                            BorderFactory.createLineBorder(new Color(34, 197, 94)),
-                            BorderFactory.createEmptyBorder(2, 5, 2, 5)
-                    ));
-                } else {
-                    claimStatusLabel.setForeground(new Color(239, 68, 68));
-                    claimStatusLabel.setBorder(BorderFactory.createCompoundBorder(
-                            BorderFactory.createLineBorder(new Color(239, 68, 68)),
-                            BorderFactory.createEmptyBorder(2, 5, 2, 5)
-                    ));
-                }
-
-                claimPanel.add(claimInfoPanel, BorderLayout.CENTER);
-                claimPanel.add(claimStatusLabel, BorderLayout.EAST);
-
-                claimsListPanel.add(claimPanel);
+                claimsInfo.append("Claim ID: ").append(claim.getId()).append("\n")
+                        .append("Name: ").append(claim.getTravelerName()).append("\n")
+                        .append("Description: ").append(claim.getTravelerDescription()).append("\n")
+                        .append("Date: ").append(claim.getClaimDate()).append("\n")
+                        .append("Status: ").append(claim.getStatus()).append("\n\n");
             }
         }
-
-        JScrollPane claimsScrollPane = new JScrollPane(claimsListPanel);
-        claimsScrollPane.setBorder(BorderFactory.createEmptyBorder());
-
-        claimsPanel.add(claimsLabel, BorderLayout.NORTH);
-        claimsPanel.add(claimsScrollPane, BorderLayout.CENTER);
-
-        contentPanel.add(detailsPanel, BorderLayout.NORTH);
-        contentPanel.add(claimsPanel, BorderLayout.CENTER);
-
-        JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
-
-        JButton closeButton = new JButton("Close");
-        closeButton.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                dialog.dispose();
-            }
-        });
-
-        JButton addClaimButton = new JButton("Add Claim");
-        addClaimButton.setBackground(new Color(59, 130, 246));
-        addClaimButton.setForeground(Color.WHITE);
-        addClaimButton.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                dialog.dispose();
-                showAddClaimDialog(item);
-            }
-        });
-
-        buttonPanel.add(closeButton);
-        buttonPanel.add(addClaimButton);
-
-        dialog.add(contentPanel, BorderLayout.CENTER);
-        dialog.add(buttonPanel, BorderLayout.SOUTH);
-
-        dialog.setVisible(true);
+        JOptionPane.showMessageDialog(this,
+                "ID: " + item.getId() + "\nDescription: " + item.getDescription() +
+                        "\nRoom: " + item.getRoomNumber() + "\nFound Date: " + item.getFoundDate() +
+                        "\nStatus: " + item.getStatus() + "\n\nClaims:\n" + claimsInfo.toString(),
+                "Lost Item Details",
+                JOptionPane.INFORMATION_MESSAGE);
     }
 
-    private void showAddClaimDialog(LostItem item) {
-        JDialog dialog = new JDialog((Frame) SwingUtilities.getWindowAncestor(this), "Add Claim for " + item.getId(), true);
-        dialog.setSize(400, 300);
-        dialog.setLocationRelativeTo(this);
-        dialog.setLayout(new BorderLayout());
-
-        JPanel formPanel = new JPanel(new GridLayout(3, 2, 10, 10));
-        formPanel.setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));
-
-        JLabel nameLabel = new JLabel("Traveler Name:");
-        JTextField nameField = new JTextField();
-
-        JLabel descriptionLabel = new JLabel("Description:");
-        JTextArea descriptionArea = new JTextArea();
-        descriptionArea.setLineWrap(true);
-        descriptionArea.setWrapStyleWord(true);
-        JScrollPane descriptionScrollPane = new JScrollPane(descriptionArea);
-
-        JLabel dateLabel = new JLabel("Claim Date:");
-        JTextField dateField = new JTextField(new java.text.SimpleDateFormat("yyyy-MM-dd").format(new java.util.Date()));
-
-        formPanel.add(nameLabel);
-        formPanel.add(nameField);
-        formPanel.add(descriptionLabel);
-        formPanel.add(descriptionScrollPane);
-        formPanel.add(dateLabel);
-        formPanel.add(dateField);
-
-        JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
-
-        JButton cancelButton = new JButton("Cancel");
-        cancelButton.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                dialog.dispose();
-            }
-        });
-
-        JButton addButton = new JButton("Submit Claim");
-        addButton.setBackground(new Color(59, 130, 246));
-        addButton.setForeground(Color.WHITE);
-        addButton.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                String name = nameField.getText();
-                String description = descriptionArea.getText();
-                String date = dateField.getText();
-
-                if (name.isEmpty() || description.isEmpty()) {
-                    JOptionPane.showMessageDialog(dialog, "Please fill in all required fields", "Error", JOptionPane.ERROR_MESSAGE);
-                    return;
-                }
-
-                String id = "C" + String.format("%03d", getTotalClaimsCount() + 1);
-                Claim newClaim = new Claim(id, item.getId(), name, description, date, "Pending");
-                item.addClaim(newClaim);
-
-                // Update item status if it was unclaimed
-                if (item.getStatus().equals("Unclaimed")) {
-                    item.setStatus("Claimed (Pending)");
-                }
-
-                populateTable();
-                dialog.dispose();
-
-                JOptionPane.showMessageDialog(dialog, "Claim submitted successfully. It will be reviewed by the staff.", "Claim Submitted", JOptionPane.INFORMATION_MESSAGE);
-            }
-        });
-
-        buttonPanel.add(cancelButton);
-        buttonPanel.add(addButton);
-
-        dialog.add(formPanel, BorderLayout.CENTER);
-        dialog.add(buttonPanel, BorderLayout.SOUTH);
-
-        dialog.setVisible(true);
-    }
-
-    private int getTotalClaimsCount() {
-        int count = 0;
-        for (LostItem item : lostItems) {
-            count += item.getClaims().size();
+    private void claimAction(int row) {
+        LostItem item = lostItems.get(row);
+        if ("Claimed".equals(item.getStatus())) {
+            JOptionPane.showMessageDialog(this, "This item has already been claimed.", "Info", JOptionPane.INFORMATION_MESSAGE);
+            return;
         }
-        return count;
+        // For demo, just show a message. You can implement claim dialog here.
+        JOptionPane.showMessageDialog(this,
+                "Claim request for item ID: " + item.getId(),
+                "Claim Item",
+                JOptionPane.INFORMATION_MESSAGE);
     }
 
-    private void showDeleteItemDialog(LostItem item) {
-        int option = JOptionPane.showConfirmDialog(
-                this,
-                "Are you sure you want to delete item " + item.getId() + "?",
-                "Delete Item",
-                JOptionPane.YES_NO_OPTION,
-                JOptionPane.WARNING_MESSAGE
-        );
+    private void deleteAction(int row) {
+        int confirm = JOptionPane.showConfirmDialog(this,
+                "Are you sure you want to delete item: " + lostItems.get(row).getDescription() + "?",
+                "Confirm Delete",
+                JOptionPane.YES_NO_OPTION);
 
-        if (option == JOptionPane.YES_OPTION) {
-            lostItems.remove(item);
+        if (confirm == JOptionPane.YES_OPTION) {
+            lostItems.remove(row);
             populateTable();
         }
     }

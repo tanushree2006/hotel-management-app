@@ -39,9 +39,9 @@ public class RoomsView extends JPanel {
     private void initComponents() {
         // Title Panel
         JPanel titleCard = new JPanel(new BorderLayout(10, 10));
-        titleCard.setBackground(Color.WHITE);
+        titleCard.setBackground(new Color(12, 42, 97));
         titleCard.setBorder(BorderFactory.createCompoundBorder(
-                BorderFactory.createLineBorder(new Color(229, 231, 235)),
+                BorderFactory.createLineBorder(new Color(238, 240, 243)),
                 BorderFactory.createEmptyBorder(20, 20, 20, 20)
         ));
         titleCard.setPreferredSize(new Dimension(1000, 120)); // give it bigger height for luxurious feel
@@ -49,11 +49,11 @@ public class RoomsView extends JPanel {
 
         JLabel titleLabel = new JLabel("Rooms Management");
         titleLabel.setFont(new Font("Serif", Font.BOLD, 34));
-        titleLabel.setForeground(new Color(30, 41, 59));
+        titleLabel.setForeground(new Color(231, 236, 243));
 
         JLabel subtitleLabel = new JLabel("Manage your rooms, statuses, pricing, and maintenance with ease.");
         subtitleLabel.setFont(new Font("Arial", Font.PLAIN, 16));
-        subtitleLabel.setForeground(new Color(107, 114, 128));
+        subtitleLabel.setForeground(new Color(189, 195, 205));
 
         JPanel textPanel = new JPanel();
         textPanel.setLayout(new BoxLayout(textPanel, BoxLayout.Y_AXIS));
@@ -64,7 +64,7 @@ public class RoomsView extends JPanel {
 
         JButton addButton = new JButton("➕ Add New Room");
         addButton.setBackground(new Color(59, 130, 246));
-        addButton.setForeground(new Color(12, 22, 37));
+        addButton.setForeground(new Color(233, 240, 250));
         addButton.setFont(new Font("Arial", Font.BOLD, 14));
         addButton.setFocusPainted(false);
         addButton.setCursor(new Cursor(Cursor.HAND_CURSOR));

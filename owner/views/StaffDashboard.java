@@ -23,6 +23,7 @@ public class StaffDashboard extends JFrame {
     private JPanel roomsPanel;
     private JPanel bookingsPanel;
     private JPanel lostFoundPanel;
+    private JPanel tasksList;
 
     public StaffDashboard(String staffName, String staffDepartment) {
         this.staffName = staffName != null ? staffName : "Staff";
@@ -248,7 +249,7 @@ public class StaffDashboard extends JFrame {
         titlePanel.add(subtitleLabel, BorderLayout.CENTER);
 
         // Metrics panel
-        JPanel metricsPanel = new JPanel(new GridLayout(1, 3, 15, 0));
+        JPanel metricsPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 15, 15));
         metricsPanel.setOpaque(false);
         metricsPanel.setBorder(BorderFactory.createEmptyBorder(20, 0, 20, 0));
 
@@ -267,10 +268,11 @@ public class StaffDashboard extends JFrame {
         JLabel tasksTitle = new JLabel("Today's Tasks");
         tasksTitle.setFont(new Font("Arial", Font.BOLD, 18));
 
-        JPanel tasksList = new JPanel();
+        tasksList = new JPanel();
         tasksList.setLayout(new BoxLayout(tasksList, BoxLayout.Y_AXIS));
         tasksList.setOpaque(false);
 
+        // Add initial dummy tasks
         tasksList.add(createTaskItem("Clean room 302", "High", "9:00 AM"));
         tasksList.add(Box.createRigidArea(new Dimension(0, 10)));
         tasksList.add(createTaskItem("Restock amenities in rooms 201-210", "Medium", "10:30 AM"));
@@ -279,23 +281,87 @@ public class StaffDashboard extends JFrame {
         tasksList.add(Box.createRigidArea(new Dimension(0, 10)));
         tasksList.add(createTaskItem("Prepare meeting room for corporate event", "Medium", "4:00 PM"));
 
-        tasksPanel.add(tasksTitle, BorderLayout.NORTH);
-        tasksPanel.add(tasksList, BorderLayout.CENTER);
+        JScrollPane scrollPane = new JScrollPane(tasksList);
+        scrollPane.setBorder(null);
+        scrollPane.setPreferredSize(new Dimension(0, 200)); // Optional to control task list height
 
-        // Add components to main panel
+        // Buttons panel
+        JPanel buttonsPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
+        buttonsPanel.setOpaque(false);
+
+        JButton submitButton = new JButton("Submit");
+        JButton addTaskButton = new JButton("Add Task");
+
+        submitButton.addActionListener(e -> {
+            Component[] components = tasksList.getComponents();
+            for (int i = components.length - 1; i >= 0; i--) {
+                Component comp = components[i];
+                if (comp instanceof JPanel) {
+                    JPanel taskItem = (JPanel) comp;
+                    for (Component child : taskItem.getComponents()) {
+                        if (child instanceof JCheckBox checkBox) {
+                            if (checkBox.isSelected()) {
+                                tasksList.remove(taskItem);
+                                if (i - 1 >= 0 && tasksList.getComponent(i - 1) instanceof Box.Filler) {
+                                    tasksList.remove(i - 1); // Remove spacing too
+                                }
+                                break;
+                            }
+                        }
+                    }
+                }
+            }
+            tasksList.revalidate();
+            tasksList.repaint();
+        });
+
+        addTaskButton.addActionListener(e -> {
+            String taskName = JOptionPane.showInputDialog(null, "Enter Task Name:");
+            if (taskName != null && !taskName.trim().isEmpty()) {
+                tasksList.add(createTaskItem(taskName, "Medium", "TBD"));
+                tasksList.add(Box.createRigidArea(new Dimension(0, 10)));
+                tasksList.revalidate();
+                tasksList.repaint();
+            }
+        });
+
+        buttonsPanel.add(addTaskButton);
+        buttonsPanel.add(submitButton);
+
+        tasksPanel.add(tasksTitle, BorderLayout.NORTH);
+        tasksPanel.add(scrollPane, BorderLayout.CENTER);
+        tasksPanel.add(buttonsPanel, BorderLayout.SOUTH);
+
+        // New: Center panel to align metrics and tasks vertically
+        JPanel centerPanel = new JPanel();
+        centerPanel.setLayout(new BoxLayout(centerPanel, BoxLayout.Y_AXIS));
+        centerPanel.setOpaque(false);
+
+        centerPanel.add(metricsPanel);
+        centerPanel.add(Box.createRigidArea(new Dimension(0, 20)));
+        centerPanel.add(tasksPanel);
+
         panel.add(titlePanel, BorderLayout.NORTH);
-        panel.add(metricsPanel, BorderLayout.CENTER);
-        panel.add(tasksPanel, BorderLayout.SOUTH);
+        panel.add(centerPanel, BorderLayout.CENTER);
 
         return panel;
     }
 
+
+
     private JPanel createMetricCard(String title, String value, String change, boolean isPositive) {
         JPanel card = new JPanel(new BorderLayout());
         card.setBackground(Color.WHITE);
+
+        // Set fixed smaller size
+        Dimension cardSize = new Dimension(220, 120); // <<< Shrunk width and height
+        card.setPreferredSize(cardSize);
+        card.setMinimumSize(cardSize);
+        card.setMaximumSize(cardSize);
+
         card.setBorder(BorderFactory.createCompoundBorder(
                 BorderFactory.createLineBorder(new Color(229, 231, 235)),
-                BorderFactory.createEmptyBorder(15, 15, 15, 15)
+                BorderFactory.createEmptyBorder(10, 10, 10, 10)
         ));
 
         JPanel topPanel = new JPanel(new BorderLayout());
@@ -304,7 +370,7 @@ public class StaffDashboard extends JFrame {
         JLabel iconLabel = new JLabel("📊");
 
         JLabel changeLabel = new JLabel(change);
-        changeLabel.setFont(new Font("Arial", Font.PLAIN, 12));
+        changeLabel.setFont(new Font("Arial", Font.PLAIN, 11)); // slightly smaller font
         changeLabel.setForeground(isPositive ? new Color(34, 197, 94) : new Color(239, 68, 68));
 
         topPanel.add(iconLabel, BorderLayout.WEST);
@@ -312,14 +378,14 @@ public class StaffDashboard extends JFrame {
 
         JPanel bottomPanel = new JPanel(new BorderLayout());
         bottomPanel.setOpaque(false);
-        bottomPanel.setBorder(BorderFactory.createEmptyBorder(10, 0, 0, 0));
+        bottomPanel.setBorder(BorderFactory.createEmptyBorder(8, 0, 0, 0));
 
         JLabel titleLabel = new JLabel(title);
-        titleLabel.setFont(new Font("Arial", Font.PLAIN, 12));
+        titleLabel.setFont(new Font("Arial", Font.PLAIN, 11));
         titleLabel.setForeground(new Color(107, 114, 128));
 
         JLabel valueLabel = new JLabel(value);
-        valueLabel.setFont(new Font("Arial", Font.BOLD, 20));
+        valueLabel.setFont(new Font("Arial", Font.BOLD, 18)); // Slightly smaller
 
         bottomPanel.add(titleLabel, BorderLayout.NORTH);
         bottomPanel.add(valueLabel, BorderLayout.SOUTH);
@@ -329,6 +395,7 @@ public class StaffDashboard extends JFrame {
 
         return card;
     }
+
 
     private JPanel createTaskItem(String task, String priority, String time) {
         JPanel panel = new JPanel(new BorderLayout());
@@ -347,13 +414,9 @@ public class StaffDashboard extends JFrame {
 
         JLabel priorityLabel = new JLabel(priority);
         priorityLabel.setFont(new Font("Arial", Font.BOLD, 12));
-        if (priority.equals("High")) {
-            priorityLabel.setForeground(new Color(239, 68, 68));
-        } else if (priority.equals("Medium")) {
-            priorityLabel.setForeground(new Color(234, 179, 8));
-        } else {
-            priorityLabel.setForeground(new Color(34, 197, 94));
-        }
+        priorityLabel.setForeground(priority.equals("High") ? new Color(239, 68, 68)
+                : priority.equals("Medium") ? new Color(234, 179, 8)
+                : new Color(34, 197, 94));
 
         JLabel timeLabel = new JLabel(time);
         timeLabel.setFont(new Font("Arial", Font.PLAIN, 12));
@@ -367,6 +430,7 @@ public class StaffDashboard extends JFrame {
 
         return panel;
     }
+
 
     private void handleLogout() {
         int option = JOptionPane.showConfirmDialog(

@@ -3,11 +3,12 @@ package owner.views;
 import owner.models.Staff;
 
 import javax.swing.*;
+import javax.swing.border.LineBorder;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableCellRenderer;
+import javax.swing.table.TableColumnModel;
 import java.awt.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
+import java.awt.event.*;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -20,16 +21,15 @@ public class StaffView extends JPanel {
     private List<Staff> staffList;
 
     public StaffView() {
-        setLayout(new BorderLayout());
+        setLayout(new BorderLayout(20, 20));
         setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));
-        setBackground(Color.WHITE);
+        setBackground(new Color(245, 247, 250)); // Light background for modern look
 
         initializeData();
         initComponents();
     }
 
     private void initializeData() {
-        // Sample data
         staffList = new ArrayList<>();
         staffList.add(new Staff("S001", "Arjun Kumar", "Receptionist", "555-0101", "arjun.kumar@miravelle.com", "On Duty", "2022-01-15", "2023-04-21"));
         staffList.add(new Staff("S002", "Sneha Patel", "Housekeeper", "555-0102", "sneha.patel@miravelle.com", "On Duty", "2022-02-10", "2023-04-21"));
@@ -41,152 +41,163 @@ public class StaffView extends JPanel {
         staffList.add(new Staff("S008", "Divya Iyer", "Housekeeper", "555-0108", "divya.iyer@miravelle.com", "On Leave", "2022-03-10", "2023-04-18"));
     }
 
-
     private void initComponents() {
-        // Title panel
-        JPanel titlePanel = new JPanel(new BorderLayout());
-        titlePanel.setOpaque(false);
+        // --- Title Panel with Rich Styling ---
+        JPanel titlePanel = new JPanel(new BorderLayout(10, 10));
+        titlePanel.setOpaque(true);
+        titlePanel.setBackground(new Color(16, 46, 106));
+        titlePanel.setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));
 
         JLabel titleLabel = new JLabel("Staff Management");
-        titleLabel.setFont(new Font("Arial", Font.BOLD, 24));
+        titleLabel.setFont(new Font("Segoe UI", Font.BOLD, 28));
+        titleLabel.setForeground(Color.WHITE);
 
         JLabel subtitleLabel = new JLabel("Manage your hotel staff, shifts, and performance.");
-        subtitleLabel.setFont(new Font("Arial", Font.PLAIN, 14));
-        subtitleLabel.setForeground(new Color(107, 114, 128));
+        subtitleLabel.setFont(new Font("Segoe UI", Font.PLAIN, 16));
+        subtitleLabel.setForeground(new Color(200, 210, 255));
+
+        JPanel titleTextPanel = new JPanel(new GridLayout(2, 1));
+        titleTextPanel.setOpaque(false);
+        titleTextPanel.add(titleLabel);
+        titleTextPanel.add(subtitleLabel);
 
         JButton addButton = new JButton("Add New Staff");
-        addButton.setBackground(new Color(59, 130, 246));
-        addButton.setForeground(Color.WHITE);
+        addButton.setBackground(new Color(179, 193, 214));
+        addButton.setForeground(new Color(9, 28, 57));
         addButton.setFocusPainted(false);
-        addButton.addActionListener(new ActionListener() {
+        addButton.setFont(new Font("Segoe UI", Font.BOLD, 14));
+        addButton.setBorder(BorderFactory.createEmptyBorder(8, 16, 8, 16));
+        addButton.setCursor(new Cursor(Cursor.HAND_CURSOR));
+        addButton.addActionListener(e -> showAddStaffDialog());
+
+        // Rounded corners for button
+        addButton.setUI(new javax.swing.plaf.basic.BasicButtonUI() {
             @Override
-            public void actionPerformed(ActionEvent e) {
-                showAddStaffDialog();
+            public void paint(Graphics g, JComponent c) {
+                Graphics2D g2 = (Graphics2D) g.create();
+                g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+                g2.setColor(addButton.getBackground());
+                g2.fillRoundRect(0, 0, c.getWidth(), c.getHeight(), 20, 20);
+                super.paint(g, c);
+                g2.dispose();
             }
         });
 
-        titlePanel.add(titleLabel, BorderLayout.NORTH);
-        titlePanel.add(subtitleLabel, BorderLayout.CENTER);
+        titlePanel.add(titleTextPanel, BorderLayout.CENTER);
         titlePanel.add(addButton, BorderLayout.EAST);
 
-        // Filter panel
-        JPanel filterPanel = new JPanel(new GridLayout(1, 3, 10, 0));
-        filterPanel.setOpaque(false);
-        filterPanel.setBorder(BorderFactory.createCompoundBorder(
-                BorderFactory.createLineBorder(new Color(229, 231, 235)),
-                BorderFactory.createEmptyBorder(15, 15, 15, 15)
-        ));
-
-        // Position filter
-        JPanel positionPanel = new JPanel(new BorderLayout(0, 5));
-        positionPanel.setOpaque(false);
-
-        JLabel positionLabel = new JLabel("Filter by Position");
-        positionLabel.setFont(new Font("Arial", Font.PLAIN, 12));
+        // --- Filters Panel with Cards ---
+        JPanel filterContainer = new JPanel(new FlowLayout(FlowLayout.LEFT, 20, 10));
+        filterContainer.setOpaque(false);
 
         positionFilter = new JComboBox<>(new String[]{"All Positions", "Receptionist", "Housekeeper", "Maintenance", "Manager", "Chef", "Security"});
-        positionFilter.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                filterStaff();
-            }
-        });
-
-        positionPanel.add(positionLabel, BorderLayout.NORTH);
-        positionPanel.add(positionFilter, BorderLayout.CENTER);
-
-        // Status filter
-        JPanel statusPanel = new JPanel(new BorderLayout(0, 5));
-        statusPanel.setOpaque(false);
-
-        JLabel statusLabel = new JLabel("Filter by Status");
-        statusLabel.setFont(new Font("Arial", Font.PLAIN, 12));
+        positionFilter.setFont(new Font("Segoe UI", Font.PLAIN, 14));
+        positionFilter.addActionListener(e -> filterStaff());
 
         statusFilter = new JComboBox<>(new String[]{"All Statuses", "On Duty", "Off Duty", "On Leave"});
-        statusFilter.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                filterStaff();
-            }
-        });
+        statusFilter.setFont(new Font("Segoe UI", Font.PLAIN, 14));
+        statusFilter.addActionListener(e -> filterStaff());
 
-        statusPanel.add(statusLabel, BorderLayout.NORTH);
-        statusPanel.add(statusFilter, BorderLayout.CENTER);
+        searchField = new JTextField(15);
+        searchField.setFont(new Font("Segoe UI", Font.PLAIN, 14));
+        searchField.addActionListener(e -> filterStaff());
 
-        // Search panel
-        JPanel searchPanel = new JPanel(new BorderLayout(0, 5));
-        searchPanel.setOpaque(false);
+        // Helper method to create cards for filters and search
+        JPanel positionCard = createCardPanel("Filter by Position", positionFilter);
+        JPanel statusCard = createCardPanel("Filter by Status", statusFilter);
+        JPanel searchCard = createCardPanel("Search", searchField);
 
-        JLabel searchLabel = new JLabel("Search");
-        searchLabel.setFont(new Font("Arial", Font.PLAIN, 12));
+        filterContainer.add(positionCard);
+        filterContainer.add(statusCard);
+        filterContainer.add(searchCard);
 
-        searchField = new JTextField();
-        searchField.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                filterStaff();
-            }
-        });
-
-        searchPanel.add(searchLabel, BorderLayout.NORTH);
-        searchPanel.add(searchField, BorderLayout.CENTER);
-
-        filterPanel.add(positionPanel);
-        filterPanel.add(statusPanel);
-        filterPanel.add(searchPanel);
-
-        // Table panel
+        // --- Table Panel with Styling ---
         JPanel tablePanel = new JPanel(new BorderLayout());
         tablePanel.setOpaque(false);
         tablePanel.setBorder(BorderFactory.createCompoundBorder(
-                BorderFactory.createLineBorder(new Color(229, 231, 235)),
-                BorderFactory.createEmptyBorder(0, 0, 0, 0)
+                BorderFactory.createLineBorder(new Color(220, 220, 220)),
+                BorderFactory.createEmptyBorder(10, 10, 10, 10)
         ));
 
-        // Create table model
+        // Table model with columns
         tableModel = new DefaultTableModel(
                 new Object[]{"ID", "Name", "Position", "Contact", "Status", "Last Shift", "Actions"}, 0
         ) {
             @Override
             public boolean isCellEditable(int row, int column) {
-                return column == 6; // Only actions column is editable
+                return column == 6; // Only actions column editable
             }
         };
 
-        // Create table
-        staffTable = new JTable(tableModel);
-        staffTable.setRowHeight(40);
+        staffTable = new JTable(tableModel) {
+            // Alternate row colors
+            @Override
+            public Component prepareRenderer(TableCellRenderer renderer, int row, int column) {
+                Component c = super.prepareRenderer(renderer, row, column);
+                if (!isRowSelected(row)) {
+                    c.setBackground(row % 2 == 0 ? new Color(245, 247, 250) : Color.WHITE);
+                } else {
+                    c.setBackground(new Color(184, 207, 229));
+                }
+                return c;
+            }
+        };
+
+        staffTable.setRowHeight(45);
+        staffTable.setFont(new Font("Segoe UI", Font.PLAIN, 14));
         staffTable.getTableHeader().setReorderingAllowed(false);
-        staffTable.getTableHeader().setFont(new Font("Arial", Font.BOLD, 12));
-        staffTable.getTableHeader().setBackground(new Color(243, 244, 246));
-        staffTable.getTableHeader().setBorder(BorderFactory.createMatteBorder(0, 0, 1, 0, new Color(229, 231, 235)));
+        staffTable.getTableHeader().setFont(new Font("Segoe UI", Font.BOLD, 14));
+        staffTable.getTableHeader().setBackground(new Color(28, 60, 115));
+        staffTable.getTableHeader().setForeground(Color.WHITE);
+        staffTable.getTableHeader().setBorder(BorderFactory.createMatteBorder(0, 0, 2, 0, new Color(16, 46, 106)));
 
         // Set column widths
-        staffTable.getColumnModel().getColumn(0).setPreferredWidth(60);
-        staffTable.getColumnModel().getColumn(1).setPreferredWidth(150);
-        staffTable.getColumnModel().getColumn(2).setPreferredWidth(100);
-        staffTable.getColumnModel().getColumn(3).setPreferredWidth(100);
-        staffTable.getColumnModel().getColumn(4).setPreferredWidth(80);
-        staffTable.getColumnModel().getColumn(5).setPreferredWidth(100);
-        staffTable.getColumnModel().getColumn(6).setPreferredWidth(100);
+        TableColumnModel columnModel = staffTable.getColumnModel();
+        columnModel.getColumn(0).setPreferredWidth(70);
+        columnModel.getColumn(1).setPreferredWidth(180);
+        columnModel.getColumn(2).setPreferredWidth(130);
+        columnModel.getColumn(3).setPreferredWidth(130);
+        columnModel.getColumn(4).setPreferredWidth(90);
+        columnModel.getColumn(5).setPreferredWidth(110);
+        columnModel.getColumn(6).setPreferredWidth(160);
 
-        // Add action buttons to the table
+        // Set custom renderer and editor for action buttons
         staffTable.getColumnModel().getColumn(6).setCellRenderer(new ButtonRenderer());
-        staffTable.getColumnModel().getColumn(6).setCellEditor(new ButtonEditor(new JCheckBox()));
+        // In StaffView class, change this line (around line 166)
+        staffTable.getColumnModel().getColumn(6).setCellEditor(new ButtonEditor()); // Remove JCheckBox parameter
 
-        // Add table to scroll pane
+
         JScrollPane scrollPane = new JScrollPane(staffTable);
         scrollPane.setBorder(BorderFactory.createEmptyBorder());
+        scrollPane.getVerticalScrollBar().setUnitIncrement(16);
 
         tablePanel.add(scrollPane, BorderLayout.CENTER);
 
-        // Populate table
+        // Populate initial table data
         populateTable();
 
-        // Add components to main panel
+        // --- Add all to main panel ---
         add(titlePanel, BorderLayout.NORTH);
-        add(filterPanel, BorderLayout.CENTER);
+        add(filterContainer, BorderLayout.CENTER);
         add(tablePanel, BorderLayout.SOUTH);
+    }
+
+    private JPanel createCardPanel(String labelText, JComponent inputComponent) {
+        JPanel card = new JPanel(new BorderLayout(0, 5));
+        card.setBorder(BorderFactory.createCompoundBorder(
+                new LineBorder(new Color(220, 220, 220), 1, true),
+                BorderFactory.createEmptyBorder(10, 15, 10, 15)
+        ));
+        card.setBackground(Color.WHITE);
+        card.setPreferredSize(new Dimension(230, 70));
+
+        JLabel label = new JLabel(labelText);
+        label.setFont(new Font("Segoe UI", Font.PLAIN, 13));
+
+        card.add(label, BorderLayout.NORTH);
+        card.add(inputComponent, BorderLayout.CENTER);
+
+        return card;
     }
 
     private void populateTable() {
@@ -207,8 +218,8 @@ public class StaffView extends JPanel {
 
     private void filterStaff() {
         String searchText = searchField.getText().toLowerCase();
-        String positionText = positionFilter.getSelectedItem().toString();
-        String statusText = statusFilter.getSelectedItem().toString();
+        String positionText = (String) positionFilter.getSelectedItem();
+        String statusText = (String) statusFilter.getSelectedItem();
 
         tableModel.setRowCount(0);
 
@@ -283,39 +294,31 @@ public class StaffView extends JPanel {
         JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
 
         JButton cancelButton = new JButton("Cancel");
-        cancelButton.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                dialog.dispose();
-            }
-        });
+        cancelButton.addActionListener(e -> dialog.dispose());
 
         JButton addButton = new JButton("Add Staff");
-        addButton.setBackground(new Color(59, 130, 246));
+        addButton.setBackground(new Color(10, 55, 128));
         addButton.setForeground(Color.WHITE);
-        addButton.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                String name = nameField.getText();
-                String position = (String) positionCombo.getSelectedItem();
-                String contact = contactField.getText();
-                String email = emailField.getText();
-                String status = (String) statusCombo.getSelectedItem();
-                String joinDate = joinDateField.getText();
-                String lastShift = lastShiftField.getText();
+        addButton.setFocusPainted(false);
+        addButton.addActionListener(e -> {
+            String name = nameField.getText().trim();
+            String position = (String) positionCombo.getSelectedItem();
+            String contact = contactField.getText().trim();
+            String email = emailField.getText().trim();
+            String status = (String) statusCombo.getSelectedItem();
+            String joinDate = joinDateField.getText().trim();
+            String lastShift = lastShiftField.getText().trim();
 
-                if (name.isEmpty() || contact.isEmpty() || email.isEmpty()) {
-                    JOptionPane.showMessageDialog(dialog, "Please fill in all required fields", "Error", JOptionPane.ERROR_MESSAGE);
-                    return;
-                }
-
-                String id = "S" + String.format("%03d", staffList.size() + 1);
-                Staff newStaff = new Staff(id, name, position, contact, email, status, joinDate, lastShift);
-                staffList.add(newStaff);
-
-                populateTable();
-                dialog.dispose();
+            if (name.isEmpty() || contact.isEmpty() || email.isEmpty()) {
+                JOptionPane.showMessageDialog(dialog, "Please fill in all required fields", "Error", JOptionPane.ERROR_MESSAGE);
+                return;
             }
+
+            String id = "S" + String.format("%03d", staffList.size() + 1);
+            Staff newStaff = new Staff(id, name, position, contact, email, status, joinDate, lastShift);
+            staffList.add(newStaff);
+            populateTable();
+            dialog.dispose();
         });
 
         buttonPanel.add(cancelButton);
@@ -327,208 +330,155 @@ public class StaffView extends JPanel {
         dialog.setVisible(true);
     }
 
-    // Custom button renderer for the actions column
-    private class ButtonRenderer extends JPanel implements TableCellRenderer {
-        private JButton viewButton;
-        private JButton editButton;
-        private JButton deleteButton;
+    // --- Custom Button Renderer for Actions Column ---
+    // Update ButtonRenderer class
 
-        public ButtonRenderer() {
-            setLayout(new FlowLayout(FlowLayout.CENTER, 2, 0));
-            setOpaque(true);
+        // Update ButtonRenderer class
+        private class ButtonRenderer extends JPanel implements TableCellRenderer {
+            private final JButton viewButton;
+            private final JButton editButton;
+            private final JButton deleteButton;
 
-            viewButton = new JButton("View");
-            viewButton.setPreferredSize(new Dimension(50, 25));
-            viewButton.setFocusPainted(false);
+            public ButtonRenderer() {
+                setLayout(new BoxLayout(this, BoxLayout.X_AXIS));
+                setOpaque(true);
+                setBorder(BorderFactory.createEmptyBorder(0, 5, 0, 5));
 
-            editButton = new JButton("Edit");
-            editButton.setPreferredSize(new Dimension(50, 25));
-            editButton.setFocusPainted(false);
+                viewButton = createButton("View", new Color(59, 130, 246));
+                editButton = createButton("Edit", new Color(16, 185, 129));
+                deleteButton = createButton("Del", new Color(239, 68, 68));
 
-            deleteButton = new JButton("Del");
-            deleteButton.setPreferredSize(new Dimension(50, 25));
-            deleteButton.setFocusPainted(false);
-
-            add(viewButton);
-            add(editButton);
-            add(deleteButton);
-        }
-
-        @Override
-        public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus, int row, int column) {
-            if (isSelected) {
-                setBackground(table.getSelectionBackground());
-            } else {
-                setBackground(table.getBackground());
+                add(viewButton);
+                add(Box.createRigidArea(new Dimension(5, 0)));
+                add(editButton);
+                add(Box.createRigidArea(new Dimension(5, 0)));
+                add(deleteButton);
             }
 
-            return this;
-        }
-    }
+            private JButton createButton(String text, Color bgColor) {
+                JButton btn = new JButton(text);
+                btn.setPreferredSize(new Dimension(70, 28));
+                btn.setMaximumSize(new Dimension(70, 28));
+                btn.setFocusPainted(false);
+                btn.setFont(new Font("Segoe UI", Font.PLAIN, 12));
+                btn.setBackground(bgColor);
+                btn.setForeground(Color.BLACK);
+                btn.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+                return btn;
+            }
 
-    // Custom button editor for the actions column
+            @Override
+            public Component getTableCellRendererComponent(JTable table, Object value,
+                                                           boolean isSelected, boolean hasFocus, int row, int column) {
+                if (isSelected) {
+                    setBackground(table.getSelectionBackground());
+                } else {
+                    setBackground(row % 2 == 0 ? new Color(245, 247, 250) : Color.WHITE);
+                }
+                return this;
+            }
+        }
+
+
+
+        // --- Custom Button Editor for Actions Column ---
+    // Update ButtonEditor class
     private class ButtonEditor extends DefaultCellEditor {
-        private JPanel panel;
-        private JButton viewButton;
-        private JButton editButton;
-        private JButton deleteButton;
-        private String action = "";
+        private final JPanel panel;
+        private final JButton viewButton;
+        private final JButton editButton;
+        private final JButton deleteButton;
         private int currentRow;
 
-        public ButtonEditor(JCheckBox checkBox) {
-            super(checkBox);
+        public ButtonEditor() {
+            super(new JCheckBox());
+            setClickCountToStart(1);
 
-            panel = new JPanel(new FlowLayout(FlowLayout.CENTER, 2, 0));
+            panel = new JPanel();
+            panel.setLayout(new BoxLayout(panel, BoxLayout.X_AXIS));
+            panel.setBorder(BorderFactory.createEmptyBorder(0, 5, 0, 5));
 
-            viewButton = new JButton("View");
-            viewButton.setPreferredSize(new Dimension(50, 25));
-            viewButton.setFocusPainted(false);
-            viewButton.addActionListener(new ActionListener() {
-                @Override
-                public void actionPerformed(ActionEvent e) {
-                    action = "View";
-                    fireEditingStopped();
-                }
+            viewButton = createButton("View", new Color(10, 55, 128));
+            editButton = createButton("Edit", new Color(41, 152, 115));
+            deleteButton = createButton("Del", new Color(220, 39, 39));
+
+            viewButton.addActionListener(e -> {
+                fireEditingStopped();
+                viewAction(currentRow);
             });
 
-            editButton = new JButton("Edit");
-            editButton.setPreferredSize(new Dimension(50, 25));
-            editButton.setFocusPainted(false);
-            editButton.addActionListener(new ActionListener() {
-                @Override
-                public void actionPerformed(ActionEvent e) {
-                    action = "Edit";
-                    fireEditingStopped();
-                }
+            editButton.addActionListener(e -> {
+                fireEditingStopped();
+                editAction(currentRow);
             });
 
-            deleteButton = new JButton("Del");
-            deleteButton.setPreferredSize(new Dimension(50, 25));
-            deleteButton.setFocusPainted(false);
-            deleteButton.addActionListener(new ActionListener() {
-                @Override
-                public void actionPerformed(ActionEvent e) {
-                    action = "Delete";
-                    fireEditingStopped();
-                }
+            deleteButton.addActionListener(e -> {
+                fireEditingStopped();
+                deleteAction(currentRow);
             });
 
             panel.add(viewButton);
+            panel.add(Box.createRigidArea(new Dimension(5, 0)));
             panel.add(editButton);
+            panel.add(Box.createRigidArea(new Dimension(5, 0)));
             panel.add(deleteButton);
         }
 
         @Override
-        public Component getTableCellEditorComponent(JTable table, Object value, boolean isSelected, int row, int column) {
+        public Component getTableCellEditorComponent(JTable table, Object value,
+                                                     boolean isSelected, int row, int column) {
             currentRow = row;
-            panel.setBackground(table.getSelectionBackground());
+            panel.setBackground(isSelected ? table.getSelectionBackground() :
+                    (row % 2 == 0 ? new Color(245, 247, 250) : Color.WHITE));
             return panel;
         }
 
         @Override
         public Object getCellEditorValue() {
-            if (action.equals("View")) {
-                showViewStaffDialog(staffList.get(currentRow));
-            } else if (action.equals("Edit")) {
-                showEditStaffDialog(staffList.get(currentRow));
-            } else if (action.equals("Delete")) {
-                showDeleteStaffDialog(staffList.get(currentRow));
-            }
-
-            action = "";
-            return action;
+            return "Actions";
         }
-    }
+        private JButton createButton(String text, Color bgColor) {
+            JButton btn = new JButton(text);
+            btn.setPreferredSize(new Dimension(70, 28));
+            btn.setFocusPainted(false);
+            btn.setFont(new Font("Segoe UI", Font.PLAIN, 12));
+            btn.setBackground(bgColor);
+            btn.setForeground(Color.WHITE);
+            btn.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+            return btn;
+        }
 
-    private void showViewStaffDialog(Staff staff) {
-        JDialog dialog = new JDialog((Frame) SwingUtilities.getWindowAncestor(this), "Staff Details", true);
-        dialog.setSize(400, 350);
-        dialog.setLocationRelativeTo(this);
-        dialog.setLayout(new BorderLayout());
+        // Action methods
+        private void viewAction(int row) {
+            Staff staff = staffList.get(row);
+            JOptionPane.showMessageDialog(StaffView.this,
+                    "ID: " + staff.getId() + "\nName: " + staff.getName() +
+                            "\nPosition: " + staff.getPosition() + "\nStatus: " + staff.getStatus(),
+                    "Staff Details",
+                    JOptionPane.INFORMATION_MESSAGE);
+        }
 
-        JPanel contentPanel = new JPanel();
-        contentPanel.setLayout(new BoxLayout(contentPanel, BoxLayout.Y_AXIS));
-        contentPanel.setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));
+        private void editAction(int row) {
+            Staff staff = staffList.get(row);
+            JDialog editDialog = createEditDialog(staff, row);
+            editDialog.setVisible(true);
+        }
 
-        JLabel idLabel = new JLabel("Staff ID: " + staff.getId());
-        idLabel.setFont(new Font("Arial", Font.BOLD, 14));
-        idLabel.setAlignmentX(Component.LEFT_ALIGNMENT);
+        private void deleteAction(int row) {
+            int confirm = JOptionPane.showConfirmDialog(StaffView.this,
+                    "Delete " + staffList.get(row).getName() + "?",
+                    "Confirm Delete",
+                    JOptionPane.YES_NO_OPTION);
 
-        JLabel nameLabel = new JLabel("Name: " + staff.getName());
-        nameLabel.setFont(new Font("Arial", Font.PLAIN, 12));
-        nameLabel.setAlignmentX(Component.LEFT_ALIGNMENT);
-
-        JLabel positionLabel = new JLabel("Position: " + staff.getPosition());
-        positionLabel.setFont(new Font("Arial", Font.PLAIN, 12));
-        positionLabel.setAlignmentX(Component.LEFT_ALIGNMENT);
-
-        JLabel contactLabel = new JLabel("Contact: " + staff.getContactNumber());
-        contactLabel.setFont(new Font("Arial", Font.PLAIN, 12));
-        contactLabel.setAlignmentX(Component.LEFT_ALIGNMENT);
-
-        JLabel emailLabel = new JLabel("Email: " + staff.getEmail());
-        emailLabel.setFont(new Font("Arial", Font.PLAIN, 12));
-        emailLabel.setAlignmentX(Component.LEFT_ALIGNMENT);
-
-        JLabel statusLabel = new JLabel("Status: " + staff.getStatus());
-        statusLabel.setFont(new Font("Arial", Font.PLAIN, 12));
-        statusLabel.setAlignmentX(Component.LEFT_ALIGNMENT);
-
-        JLabel joinDateLabel = new JLabel("Join Date: " + staff.getJoinDate());
-        joinDateLabel.setFont(new Font("Arial", Font.PLAIN, 12));
-        joinDateLabel.setAlignmentX(Component.LEFT_ALIGNMENT);
-
-        JLabel lastShiftLabel = new JLabel("Last Shift: " + staff.getLastShift());
-        lastShiftLabel.setFont(new Font("Arial", Font.PLAIN, 12));
-        lastShiftLabel.setAlignmentX(Component.LEFT_ALIGNMENT);
-
-        contentPanel.add(idLabel);
-        contentPanel.add(Box.createRigidArea(new Dimension(0, 10)));
-        contentPanel.add(nameLabel);
-        contentPanel.add(Box.createRigidArea(new Dimension(0, 5)));
-        contentPanel.add(positionLabel);
-        contentPanel.add(Box.createRigidArea(new Dimension(0, 5)));
-        contentPanel.add(contactLabel);
-        contentPanel.add(Box.createRigidArea(new Dimension(0, 5)));
-        contentPanel.add(emailLabel);
-        contentPanel.add(Box.createRigidArea(new Dimension(0, 5)));
-        contentPanel.add(statusLabel);
-        contentPanel.add(Box.createRigidArea(new Dimension(0, 5)));
-        contentPanel.add(joinDateLabel);
-        contentPanel.add(Box.createRigidArea(new Dimension(0, 5)));
-        contentPanel.add(lastShiftLabel);
-
-        JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
-
-        JButton closeButton = new JButton("Close");
-        closeButton.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                dialog.dispose();
+            if (confirm == JOptionPane.YES_OPTION) {
+                staffList.remove(row);
+                populateTable();
             }
-        });
+        }
 
-        JButton editButton = new JButton("Edit");
-        editButton.setBackground(new Color(59, 130, 246));
-        editButton.setForeground(Color.WHITE);
-        editButton.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                dialog.dispose();
-                showEditStaffDialog(staff);
-            }
-        });
-
-        buttonPanel.add(closeButton);
-        buttonPanel.add(editButton);
-
-        dialog.add(contentPanel, BorderLayout.CENTER);
-        dialog.add(buttonPanel, BorderLayout.SOUTH);
-
-        dialog.setVisible(true);
     }
-
-    private void showEditStaffDialog(Staff staff) {
+    // Add this method in StaffView class (not inside ButtonEditor)
+    private JDialog createEditDialog(Staff staff, int row) {
         JDialog dialog = new JDialog((Frame) SwingUtilities.getWindowAncestor(this), "Edit Staff", true);
         dialog.setSize(400, 400);
         dialog.setLocationRelativeTo(this);
@@ -537,107 +487,62 @@ public class StaffView extends JPanel {
         JPanel formPanel = new JPanel(new GridLayout(7, 2, 10, 10));
         formPanel.setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));
 
-        JLabel nameLabel = new JLabel("Name:");
+        // Create fields with existing data
         JTextField nameField = new JTextField(staff.getName());
-
-        JLabel positionLabel = new JLabel("Position:");
-        JComboBox<String> positionCombo = new JComboBox<>(new String[]{"Receptionist", "Housekeeper", "Maintenance", "Manager", "Chef", "Security"});
+        JComboBox<String> positionCombo = new JComboBox<>(
+                new String[]{"Receptionist", "Housekeeper", "Maintenance", "Manager", "Chef", "Security"});
         positionCombo.setSelectedItem(staff.getPosition());
 
-        JLabel contactLabel = new JLabel("Contact Number:");
         JTextField contactField = new JTextField(staff.getContactNumber());
-
-        JLabel emailLabel = new JLabel("Email:");
         JTextField emailField = new JTextField(staff.getEmail());
 
-        JLabel statusLabel = new JLabel("Status:");
-        JComboBox<String> statusCombo = new JComboBox<>(new String[]{"On Duty", "Off Duty", "On Leave"});
+        JComboBox<String> statusCombo = new JComboBox<>(
+                new String[]{"On Duty", "Off Duty", "On Leave"});
         statusCombo.setSelectedItem(staff.getStatus());
 
-        JLabel joinDateLabel = new JLabel("Join Date:");
         JTextField joinDateField = new JTextField(staff.getJoinDate());
-
-        JLabel lastShiftLabel = new JLabel("Last Shift:");
         JTextField lastShiftField = new JTextField(staff.getLastShift());
 
-        formPanel.add(nameLabel);
+        // Add components to form
+        formPanel.add(new JLabel("Name:"));
         formPanel.add(nameField);
-        formPanel.add(positionLabel);
+        formPanel.add(new JLabel("Position:"));
         formPanel.add(positionCombo);
-        formPanel.add(contactLabel);
+        formPanel.add(new JLabel("Contact:"));
         formPanel.add(contactField);
-        formPanel.add(emailLabel);
+        formPanel.add(new JLabel("Email:"));
         formPanel.add(emailField);
-        formPanel.add(statusLabel);
+        formPanel.add(new JLabel("Status:"));
         formPanel.add(statusCombo);
-        formPanel.add(joinDateLabel);
+        formPanel.add(new JLabel("Join Date:"));
         formPanel.add(joinDateField);
-        formPanel.add(lastShiftLabel);
+        formPanel.add(new JLabel("Last Shift:"));
         formPanel.add(lastShiftField);
-
-        JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
-
-        JButton cancelButton = new JButton("Cancel");
-        cancelButton.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                dialog.dispose();
-            }
-        });
 
         JButton saveButton = new JButton("Save Changes");
         saveButton.setBackground(new Color(59, 130, 246));
         saveButton.setForeground(Color.WHITE);
-        saveButton.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                String name = nameField.getText();
-                String position = (String) positionCombo.getSelectedItem();
-                String contact = contactField.getText();
-                String email = emailField.getText();
-                String status = (String) statusCombo.getSelectedItem();
-                String joinDate = joinDateField.getText();
-                String lastShift = lastShiftField.getText();
+        saveButton.addActionListener(e -> {
+            staff.setName(nameField.getText());
+            staff.setPosition((String) positionCombo.getSelectedItem());
+            staff.setContactNumber(contactField.getText());
+            staff.setEmail(emailField.getText());
+            staff.setStatus((String) statusCombo.getSelectedItem());
+            staff.setJoinDate(joinDateField.getText());
+            staff.setLastShift(lastShiftField.getText());
 
-                if (name.isEmpty() || contact.isEmpty() || email.isEmpty()) {
-                    JOptionPane.showMessageDialog(dialog, "Please fill in all required fields", "Error", JOptionPane.ERROR_MESSAGE);
-                    return;
-                }
-
-                staff.setName(name);
-                staff.setPosition(position);
-                staff.setContactNumber(contact);
-                staff.setEmail(email);
-                staff.setStatus(status);
-                staff.setJoinDate(joinDate);
-                staff.setLastShift(lastShift);
-
-                populateTable();
-                dialog.dispose();
-            }
+            populateTable();
+            dialog.dispose();
         });
 
-        buttonPanel.add(cancelButton);
+        JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
         buttonPanel.add(saveButton);
 
         dialog.add(formPanel, BorderLayout.CENTER);
         dialog.add(buttonPanel, BorderLayout.SOUTH);
 
-        dialog.setVisible(true);
+        return dialog;
     }
 
-    private void showDeleteStaffDialog(Staff staff) {
-        int option = JOptionPane.showConfirmDialog(
-                this,
-                "Are you sure you want to delete staff member " + staff.getName() + "?",
-                "Delete Staff",
-                JOptionPane.YES_NO_OPTION,
-                JOptionPane.WARNING_MESSAGE
-        );
-
-        if (option == JOptionPane.YES_OPTION) {
-            staffList.remove(staff);
-            populateTable();
-        }
-    }
 }
+

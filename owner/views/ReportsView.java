@@ -34,7 +34,7 @@ public class ReportsView extends JPanel {
 
         JButton exportButton = new JButton("Export Report");
         exportButton.setBackground(new Color(59, 130, 246));
-        exportButton.setForeground(Color.WHITE);
+        exportButton.setForeground(new Color(6, 13, 23));
         exportButton.setFocusPainted(false);
         exportButton.addActionListener(new ActionListener() {
             @Override

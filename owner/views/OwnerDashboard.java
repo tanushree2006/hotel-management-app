@@ -37,33 +37,45 @@ public class OwnerDashboard extends JFrame {
         DashboardView dashboardView = new DashboardView(this);
         setContentPane(dashboardView);
 
-        // This is correct:
-        setContentPane(new DashboardView(this)); // Pass reference to OwnerDashboard
-
-
 
         // Add window listener to handle logout
         addWindowListener(new WindowAdapter() {
             @Override
             public void windowClosing(WindowEvent e) {
-                // Custom logic, e.g., confirm logout
-                int option = JOptionPane.showConfirmDialog(
-                        OwnerDashboard.this,
-                        "Are you sure you want to logout?",
-                        "Logout Confirmation",
-                        JOptionPane.YES_NO_OPTION,
-                        JOptionPane.QUESTION_MESSAGE
-                );
-                if (option == JOptionPane.YES_OPTION) {
-                    dispose();
-                    // Optionally show login window
-                }
+                handleLogout();
             }
         });
 
+    }
+    private void handleLogout() {
+        int option = JOptionPane.showConfirmDialog(
+                this,
+                "Are you sure you want to logout?",
+                "Logout Confirmation",
+                JOptionPane.YES_NO_OPTION,
+                JOptionPane.QUESTION_MESSAGE
+        );
 
-
-
+        if (option == JOptionPane.YES_OPTION) {
+            dispose();
+            SwingUtilities.invokeLater(() -> {
+                try {
+                    // Use reflection to create LoginWindow instance
+                    Class<?> loginWindowClass = Class.forName("LoginWindow");
+                    Object loginWindow = loginWindowClass.getDeclaredConstructor().newInstance();
+                    Method setVisibleMethod = loginWindowClass.getMethod("setVisible", boolean.class);
+                    setVisibleMethod.invoke(loginWindow, true);
+                } catch (Exception ex) {
+                    ex.printStackTrace();
+                    JOptionPane.showMessageDialog(
+                            null,
+                            "Error returning to login screen. Please restart the application.",
+                            "Error",
+                            JOptionPane.ERROR_MESSAGE
+                    );
+                }
+            });
+        }
     }
 
 
